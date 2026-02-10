@@ -100,3 +100,10 @@ if __name__ == "__main__":
     test_case_diagonal()
 
 print(__name__)
+
+# i bruach anzahl der Knoten
+# Daraus Matrix mit alles 0ern machen
+# Da dann alle ks einsetzen
+n_nodes = len()
+
+
