@@ -18,7 +18,7 @@ class Structure:
         if fixed is None:
             fixed = np.zeros(self.dim, dtype=bool)
         else:
-            fixed = np.array(fixed, dtype=float)
+            fixed = np.array(fixed, dtype=bool)
         
         self.graph.add_node(id, pos = pos, F = force, fixed = fixed, u_indices = None) # Knoten hinzufügen und Attribute speichern
 
@@ -33,10 +33,10 @@ class Structure:
     def ndofs(self): 
         return self.graph.number_of_nodes() * self.dim      # Knoten * Dimension = Anzahl möglicher Freiheitsgrade
         
-    def assemble():
+    def assemble(): # Zusammenbauen
         None
 
-    def fixed_dofs():
+    def fixed_dofs(): # Randys :)
         None
 
     def solve():
