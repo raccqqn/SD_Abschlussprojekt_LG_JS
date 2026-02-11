@@ -42,22 +42,10 @@ class Structure:
         return self.ndofs                                                   # Anzahl möglicher Freiheitsgrade zurückgeben
         
     def assemble(self): # Zusammenbauen
-        K = np.zeros((self.ndofs, self.ndofs))
+        self.assemble_stiffnes()
+        self.assemble_force_vector()
+        return self.K_global, self.F_global
 
-        for _, _, data in self.graph.edges(data=True):                      #Über alle Federelemente iterieren
-            spring = data["spring"]
-
-            Ko = spring.K_global()                                          #Globale Steifigkeit berechnen
-
-            indices = np.concatenate((                                                #Aktuelle Freiheits-Indizes abrufen 
-                spring.i.dof_indices, spring.j.dof_indices
-            ))
-
-            for a in range(len(indices)):                                      #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
-                for b in range(len(indices)):
-                    K[indices[a], indices[b]] += Ko[a, b]
-
-        self.K_global
 
     def fixed_dofs(self): # Randys :)
         fixed = []
@@ -66,8 +54,37 @@ class Structure:
             node = data["note_ref"]
             for i, is_fixed in enumerate(node.fixed):
                 if is_fixed:
-                    fixed.append(node.u_indices[i])
+                    fixed.append(node.dof_indices[i])
 
         return np.array(fixed, dtype=bool)
 
+    def assemble_stiffnes(self):
+        K = np.zeros((self.ndofs, self.ndofs))
+
+        for _, _, data in self.graph.edges(data=True):                      #Über alle Federelemente iterieren
+            spring = data["spring"]
+
+            Ko = spring.K_global()                                          #Globale Steifigkeit berechnen
+
+            indices = np.concatenate((                                      #Aktuelle Freiheits-Indizes abrufen 
+                spring.i.dof_indices, spring.j.dof_indices
+            ))
+
+            for a in range(len(indices)):                                      #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
+                for b in range(len(indices)):
+                    K[indices[a], indices[b]] += Ko[a, b]
+
+        self.K_global = K
+
+
+    def assemble_force_vector(self):                                            #Kraftvektor bauen
+        F = np.zeros(self.ndofs)
+
+        for _, data in self.graph.nodes(data=True):                             #Durch Nodes iterieren, wirkende Kraft zu Kraftvektor dazuaddieren
+            node = data["node_ref"]
+            for i, dof in enumerate(node.dof_indices):
+                if node.F is not 0:
+                    F[dof] += node.F[i]
+        
+        self.F_global = F
     
