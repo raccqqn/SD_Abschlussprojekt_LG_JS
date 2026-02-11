@@ -48,15 +48,15 @@ class Structure:
 
 
     def fixed_dofs(self): # Randys :)
-        fixed = []
+        fixed_mask = np.zeros(self.ndofs, dtype = bool)                     # Logische Maske für Fixierung
 
-        for _, data in self.graph.nodes(data=True):                             #Durch Nodes iterieren, Indizes der fixierten Nodes speichern
-            node = data["note_ref"]
+        for _, data in self.graph.nodes(data=True):                         #Durch Nodes iterieren, Indizes der fixierten Nodes speichern
+            node = data["node_ref"]
             for i, is_fixed in enumerate(node.fixed):
                 if is_fixed:
-                    fixed.append(node.dof_indices[i])
+                    fixed_mask[node.dof_indices[i]] = True
 
-        return np.array(fixed, dtype=bool)
+        return fixed_mask
 
     def assemble_stiffnes(self):
         K = np.zeros((self.ndofs, self.ndofs))
