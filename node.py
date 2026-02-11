@@ -9,16 +9,15 @@ class Node:
         self.id = id
         self.pos = np.array(pos, dtype=float)
 
-        self.F = np.zeros_like(pos, dtype=float)            #zeros_like: Matrix in gleicher Form, mit 0 füllen
-        self.fixed = np.zeros_like(pos, dtype=bool)         #Node in x, y oder z Richtung fixiert?
+        self.F = None                                       #Belastung und Randbedinungen werden in Struktur festgelegt, nicht an Node
+        self.fixed = None                                   #Node in x, y oder z Richtung fixiert?
+        self.dof_indices = None                             #Zuweisung der zugehörigen Freiheitsgrade
 
-        self.u_indices = None                               #Zuweisung der zugehörigen Verschiebungen
-
-    def set_force(self, vals):
-        self.F[:] = vals
+    def set_force(self, F):
+        self.F = np.array(F, float)
     
-    def fix(self, is_fixed=None):                           #Wird is_fixed nicht übergeben: Knoten fixiert
-        if is_fixed == None:                                #Wenn schon, kann festgelegt werden, welche Richtung fixiert ist
-            self.fixed[:] = True
+    def fix(self, fixed=None):                           #Wird is_fixed nicht übergeben: Knoten fixiert
+        if fixed is None:                                #Wenn schon, kann festgelegt werden, welche Richtung fixiert ist
+            self.fixed = np.ones_like(self.pos, dtype=bool)
         else:
-            self.fixed[:] = is_fixed
+            self.fixed = np.array(fixed, dtype=bool)
