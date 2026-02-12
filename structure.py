@@ -83,8 +83,6 @@ class Structure:
         for _, data in self.graph.nodes(data=True):                             #Durch Nodes iterieren, wirkende Kraft zu Kraftvektor dazuaddieren
             node = data["node_ref"]
             for i, dof in enumerate(node.dof_indices):
-                if node.F is not 0:
-                    F[dof] += node.F[i]
+                F[dof] += node.F[i]
         
         self.F_global = F
-    
