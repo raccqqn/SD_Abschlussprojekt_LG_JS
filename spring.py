@@ -25,10 +25,20 @@ class Spring:
 
     def proj_matrix(self):      
         dir = self.direction()
-        pm = np.array([                     #Format: (u_ix, u_iy, u_jx, u_jy). Ziel: Globale Verschiebungen in lokale Längenänderungen entlang der Feder übersetzen
-            [dir[0], dir[1], 0, 0],         #Verschiebungen Node i auf Stabrichtung projezieren
-            [0, 0, dir[0], dir[1]]          #Verschiebungen Node j auf Stabrichtung projezieren
-        ])                                  #In gegebenem solver.py 2*2 Matrix da eine Node fixiert ist
+        dim = len(dir)                      #Aktuelle Dimension speichern
+
+        #Funktion in 2D:
+        #Format: (u_ix, u_iy, u_jx, u_jy). Ziel: Globale Verschiebungen in lokale Längenänderungen entlang der Feder übersetzen
+        #Verschiebungen Node i auf Stabrichtung projezieren
+        #Verschiebungen Node j auf Stabrichtung projezieren
+        #In gegebenem solver.py 2*2 Matrix da eine Node fixiert ist
+
+        pm = np.zeros((2, 2*dim))           #Leere Projektionsmatrix erstellen
+
+        #Füllen, so Dimensionsunabhängig
+        pm[0, 0:dim] = dir                  #Node i    
+        pm[1,dim:2*dim] = dir               #Node j
+
         return pm
     
     def K_global(self):

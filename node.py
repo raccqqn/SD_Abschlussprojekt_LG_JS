@@ -16,8 +16,8 @@ class Node:
     def set_force(self, F):
         self.F = np.array(F, float)
     
-    def fix(self, fixed=None):                           #Wird is_fixed nicht übergeben: Knoten fixiert
-        if fixed is None:                                #Wenn schon, kann festgelegt werden, welche Richtung fixiert ist
+    def fix(self, fixed=None):                              #Wird is_fixed nicht übergeben: Knoten fixiert
+        if fixed is None:                                   #Wenn schon, kann festgelegt werden, welche Richtung fixiert ist
             self.fixed = np.ones_like(self.pos, dtype=bool)
         else:
             self.fixed = np.array(fixed, dtype=bool)
