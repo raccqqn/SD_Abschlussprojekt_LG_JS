@@ -26,6 +26,9 @@ class Structure:
 
         self.graph.add_node(node.id, node_ref=node)                         # Knoten hinzufügen und Attribute speichern
 
+    def remove_node(self, node_id: Node):
+        self.graph.remove_node(node_id)                                     #Verbundene Springs werden mit gelöscht!
+
     def add_spring(self, node_i: Node, node_j: Node, k):
         spring = Spring(node_i, node_j, k)                                  #Spring Instanz an Knoten i und j erstellen
         self.graph.add_edge(node_i.id, node_j.id, spring=spring)            #Feder zwischen Knoten als Edge hinzufügen, Objekt als Attribut
@@ -44,11 +47,10 @@ class Structure:
     def assemble(self): # Zusammenbauen
         self.assemble_stiffnes()
         self.assemble_force_vector()
-        return self.K_global, self.F_global
 
 
-    def fixed_dofs(self): # Randys :)
-        fixed_mask = np.zeros(self.ndofs, dtype = bool)                     # Logische Maske für Fixierung
+    def fixed_dofs(self):
+        fixed_mask = np.zeros(self.ndofs, dtype = bool)                     #Logische Maske für Fixierung
 
         for _, data in self.graph.nodes(data=True):                         #Durch Nodes iterieren, Indizes der fixierten Nodes speichern
             node = data["node_ref"]
@@ -57,6 +59,11 @@ class Structure:
                     fixed_mask[node.dof_indices[i]] = True
 
         return fixed_mask
+    
+    def is_fixed(self, node_id):
+        node = self.graph.nodes[node_id]["node_ref"]                        #Node aus Graph bestimmen, speichern
+        fixed = np.any(node.fixed)                                          #Ein Element aus Dictionary true?
+        return fixed
 
     def assemble_stiffnes(self):
         K = np.zeros((self.ndofs, self.ndofs))
