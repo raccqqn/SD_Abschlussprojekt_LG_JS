@@ -93,3 +93,7 @@ class Structure:
                 F[dof] += node.F[i]
         
         self.F_global = F
+
+    def has_force(self, node_id):
+        node = self.graph.nodes[node_id]["node_ref"]
+        return not np.allclose(node.F, 0)                                       #True, wenn Kraft nicht nahe an 0 ist 

@@ -22,6 +22,7 @@ class Solver():
     def solve(self):                           # Globaler Verschiebungsvektor 
         K_ff, F_f = self.reduced_system()                      
         u = np.zeros_like(self.F)              # Vektor mit gleicher Länge wie Kraftvektor - gefüllt mit Nullen
+
         u_f = np.linalg.solve(K_ff, F_f)       # Gleichung lösen für freie dofs
         
         u[self.free] = u_f                     # Lösung an den Positionen einetzen

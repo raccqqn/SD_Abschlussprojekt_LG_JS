@@ -6,25 +6,30 @@ import matplotlib.pyplot as plt
 
 def build_beam():
 
-    length = 100
-    width = 20
+    length = 50
+    width = 10
     k = 1
 
     bld = BeamBuilder2D(length,width,k)
     bld.create_geometry()
 
-    #bld.apply_force((100,0), [0, -35])
+#    bld.apply_force((10,0), [0, -0.5])
 
-    for x in range(45,55):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
-        bld.apply_force((x,0), [0,-1.5])
+    for x in range(23,27):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
+        bld.apply_force((x,0), [0,-2])
 
-    bld.fix_node((0,0), [1,1])
-    bld.fix_node((length-1,0), [1,1])
+    for y in range(width):
+        bld.fix_node((0,y), [1,1])
+        bld.fix_node((length-1,y), [1,1])
+
+#    bld.fix_node((0,width-1), [1,1])
+#    bld.fix_node((length-1,width-1), [1,1])
+    
     beam = bld.build()
     beam.assemble()
 
     opt = Optimizer(beam)
-    opt_beam, u = opt.optimize(1900)
+    opt_beam, u = opt.optimize(200)
 
     scale = 0.1                                         #Skalierung, sonst sieht man nichts
 
@@ -61,23 +66,24 @@ def build_body():
     body = bld.build()
     body.assemble()
 
-    slv = Solver(body)
-    solution = slv.solve()
+    opt = Optimizer(body)
+    
+    opt_body, u = opt.optimize(1500)
 
-    u_nodes = solution.reshape(-1, 3)       #Für Plot reshapen
+#    u_nodes = solution.reshape(-1, 3)       #Für Plot reshapen
     scale = 0.1 
 
     #3D-Plot
     fig = plt.figure()
     ax = plt.axes(projection="3d")
 
-    for node_id, data in body.graph.nodes(data=True):
+    for _, data in opt_body.graph.nodes(data=True):
         node = data["node_ref"]
         x,y,z = node.pos
-        ux,uy,uz = u_nodes[node_id]
+        #ux,uy,uz = [node.dof_indices]
 
         plt.plot(x, y, z, "ko")                                      #ursprüngliche Lage
-        plt.plot(x + scale*ux, y + scale*uy, z + scale*uz, "ro")     #verformte Lage
+        #plt.plot(x + scale*ux, y + scale*uy, z + scale*uz, "ro")     #verformte Lage
     
     plt.gca().set_aspect("equal")
     plt.show()
