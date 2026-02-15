@@ -33,21 +33,23 @@ class Optimizer():
         
         return node_energies
 
-    def edit_structure(self, energy):
+    def edit_structure(self, energy, batch_size):
         
         node_ids = list(self.structure.graph.nodes())
-
         sorted_nodes = sorted(zip(node_ids, energy), key=lambda x: x[1])      #Node ID's nach Energie aufsteigend sortieren, verpacken
-
+        n_removed = 0 
+        
 
         for node_id, e in sorted_nodes:
-            
+            if n_removed >= batch_size:
+                break
+
             if node_id not in self.structure.graph:                     #Wurde schon gelöscht? Überspringen
                 continue
 
             if self.can_remove(node_id):                                #Überprüfen ob fixiert, kraftwirkung oder kein Lastpfad ohne Node
                 self.structure.remove_node(node_id)                     #Verbundene Springs werden von NetworkX automatisch gelöscht
-                break                                                   
+                n_removed += 1                                                   
 
         #Nach Löschen des Nodes System überprüfen: Gibt es mechanisch instabile Nodes?
         changed = True
@@ -55,9 +57,9 @@ class Optimizer():
             changed = False
             for node_id in list(self.structure.graph.nodes()):
                 #Ist Knoten nur mit einer Feder verbunden -> Mechanisch instabil, Singularity Error
-                if not self.structure.is_fixed(node_id) and self.structure.graph.degree(node_id) < self.structure.dim:
+                if not self.structure.is_fixed(node_id) and \
+                not self.structure.is_mechanically_stable(node_id):
                     self.structure.remove_node(node_id)
-                    #Nach Löschen einer weiteren Node changed-Trigger neu setzen
                     changed = True
 
         self.structure.assign_dofs()                                    #Struktur neu aufbauen!
@@ -77,18 +79,6 @@ class Optimizer():
         if not nx.is_connected(temp_graph):                             #Besteht die Struktur noch aus einem Stück?
             return False
 
-#        for component in nx.connected_components(temp_graph):           #connectec_components: Alle Verbindungen
-#
-#            has_fixed_node = False
-#
-#            for n in component:                                         #Enthält jede Component mindestens einen Knoten, dessen Node-Objekt fixed ist?
-#                if self.structure.is_fixed(n):
-#                    has_fixed_node = True
-#                    break
-#            
-#            if not has_fixed_node:
-#                return False
-
         return True
 
     def optimize(self, target):
@@ -96,6 +86,12 @@ class Optimizer():
         c = 1
 
         while self.structure.graph.number_of_nodes() > target:
+
+            current_nodes = self.structure.graph.number_of_nodes()
+            if current_nodes > 700:
+                batch_size = 2
+            else:
+                batch_size = 10
 
             print(f"Starting {c}. Iteration...")
             print(f"Nodes left: {self.structure.ndofs/self.structure.dim}")
@@ -105,7 +101,7 @@ class Optimizer():
             u = solver.solve()
             energy = self.calc_node_energy(u)
 
-            self.edit_structure(energy)
+            self.edit_structure(energy, batch_size)
 
             try:
              _ = Solver(self.structure).solve()

@@ -7,29 +7,29 @@ import matplotlib.pyplot as plt
 def build_beam():
 
     length = 50
-    width = 10
+    width = 20
     k = 1
 
     bld = BeamBuilder2D(length,width,k)
     bld.create_geometry()
 
-#    bld.apply_force((10,0), [0, -0.5])
+#    bld.apply_force((10,0), [0, -1.5])
 
     for x in range(23,27):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
         bld.apply_force((x,0), [0,-2])
 
-    for y in range(width):
-        bld.fix_node((0,y), [1,1])
-        bld.fix_node((length-1,y), [1,1])
+#    for y in range(width):
+#        bld.fix_node((0,y), [1,1])
+#        bld.fix_node((length-1,y), [0,1])
 
-#    bld.fix_node((0,width-1), [1,1])
-#    bld.fix_node((length-1,width-1), [1,1])
+    bld.fix_node((0,0), [0,1])
+    bld.fix_node((length-1,0), [1,1])
     
     beam = bld.build()
     beam.assemble()
 
     opt = Optimizer(beam)
-    opt_beam, u = opt.optimize(200)
+    opt_beam, u = opt.optimize(500)
 
     scale = 0.1                                         #Skalierung, sonst sieht man nichts
 
@@ -40,7 +40,7 @@ def build_beam():
         ux, uy = u[node.dof_indices]
 
         plt.plot(x, y, "ko")                           #ursprüngliche Lage
-        plt.plot(x + scale*ux, y + scale*uy, "ro")     #verformte Lage
+        #plt.plot(x + scale*ux, y + scale*uy, "ro")     #verformte Lage
 
     plt.gca().set_aspect("equal")
     plt.show()

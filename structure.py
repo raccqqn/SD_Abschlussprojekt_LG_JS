@@ -97,3 +97,41 @@ class Structure:
     def has_force(self, node_id):
         node = self.graph.nodes[node_id]["node_ref"]
         return not np.allclose(node.F, 0)                                       #True, wenn Kraft nicht nahe an 0 ist 
+    
+    def is_mechanically_stable(self, node_id) -> bool:
+
+        #Fixierte Knoten sind immer stabil
+        if self.is_fixed(node_id):
+            return True
+
+        neighbors = list(self.graph.neighbors(node_id))
+
+        #Zu wenige Verbindungen -> instabil
+        if len(neighbors) < self.dim:
+            return False
+
+        node = self.graph.nodes[node_id]["node_ref"]
+        x0, y0 = node.pos[0], node.pos[1]
+
+        directions = []
+
+        for n_id in neighbors:
+            neighbor = self.graph.nodes[n_id]["node_ref"]
+            dx = neighbor.pos[0] - x0
+            dy = neighbor.pos[1] - y0
+
+            length = np.hypot(dx, dy)
+            if length == 0:
+                continue
+
+            directions.append([dx / length, dy / length])
+
+        if len(directions) < self.dim:
+            return False
+
+        directions = np.array(directions)
+
+        #Rang bestimmen
+        rank = np.linalg.matrix_rank(directions)
+
+        return rank >= self.dim
