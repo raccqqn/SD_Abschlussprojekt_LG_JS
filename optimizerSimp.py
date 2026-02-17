@@ -14,7 +14,19 @@ class OptimizerSIMP():
 
         #Ausgangsvolumen verändert sich nicht: Einmal festlegen, in Array speichern
         self.V_vec = np.array([spring.V for spring in self.springs])
-        self.V_total = np.sum(self.V_vec)        
+        self.V_total = np.sum(self.V_vec) 
+
+        #Mittelpunkte der Federn speichern. pos bleiben Konstant, kann einmal bestimmt werden
+        self.centers = []                                       
+        for spring in self.springs:
+            xi = spring.i.pos
+            xj = spring.j.pos
+            #Mittelpunkt speichern
+            self.centers.append(0.5*(xi + xj))
+
+        #Als Array speichern
+        self.centers = np.array(self.centers)       
+
 
     def calc_element_energies(self, u):
         
@@ -72,6 +84,36 @@ class OptimizerSIMP():
         return sens
 
 
+    def apply_filter(self, sensits, radius):
+        """
+        Empfindlichkeiten werden in festgelegtem Radius gemittelt.
+        """
+        new_sens = np.zeros_like(sensits)
+        
+        for i in range(len(self.edges)):
+            weight_sum = 0.0
+            #Distanzen zu allen anderen Mittelpunkten berechnen
+            dists = np.linalg.norm(self.centers - self.centers[i], axis=1)
+            
+            #Indices von Mittelpunkten in Radius speichern
+            indices = np.where(dists < radius)[0]
+            
+            for idx in indices:
+                
+                #Skalieren, Linear mit Entfernung abnehmend
+                fac = radius - dists[idx]
+                
+                #Multipliziert mit x: Nur relevante Elemente beeinflussen Nachbarn
+                new_sens[i] += fac * self.springs[idx].x * sensits[idx]
+
+                weight_sum += fac
+            
+            #Neuen sens-Wert nach Gesamtsumme  normieren, Wert darf nie 0 sein.
+            #Wieder durch x teilen, um Sens auf ursprüngliches Niveau zu kriegen
+            new_sens[i] /= (max(1e-3, self.springs[i].x) * weight_sum)
+        
+        return new_sens
+
     def update_x(self, sensitivities, vol_fac, move=0.2, xmin=0.001):
 
         #Zielvolumen berechnen
@@ -81,7 +123,8 @@ class OptimizerSIMP():
         x_old = np.array([spring.x for spring in self.springs])
 
         #Aktuelle Empfindlichkeiten in Array abspeichern
-        sensits = np.array([sensitivities[edge] for edge in self.edges])     
+        #sensits = np.array([sensitivities[edge] for edge in self.edges])
+        sensits = sensitivities     
 
         #Lagrange-Multiplikator lam: Korrekturfaktor. Groß: Material "teurer", x sinkt | Klein: Material "günstiger", x steigt
         #Lagrange-Formel: L(x,lam) = C(x) + lam * (sum(x_i * v_i) - V_targ)
@@ -96,7 +139,7 @@ class OptimizerSIMP():
         #Aufhören, wenn Grenzen fast übereinander liegen
         while (l2 - l1) > 10e-6:
             #Mitte als Startwert
-            lam = (l1 + l2) / 2             
+            lam = (l1 + l2  ) / 2             
 
             #neues x für alle Elemente berechnen
             x_new = x_old * np.sqrt(-sensits / (lam * self.V_vec))
@@ -120,7 +163,7 @@ class OptimizerSIMP():
         for i, spring in enumerate(self.springs):
             spring.x = x_new[i]
 
-    def optimize(self, vol_fac=0.4, max_iter=50):
+    def optimize(self, vol_fac=0.4, max_iter=50, filter_radius = 1e-9):
 
         for it in range(max_iter):
 
@@ -135,7 +178,10 @@ class OptimizerSIMP():
             ee = self.calc_element_energies(u)
             sens = self.compute_sensitivities(ee)
 
-            self.update_x(sens, vol_fac)
+            sens_array = np.array([sens[edge] for edge in self.edges])
+            filtered_sens = self.apply_filter(sens_array, filter_radius)
+
+            self.update_x(filtered_sens, vol_fac)
 
             #Compliance berechnen
             compliance = solver.F.T @ u
