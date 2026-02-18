@@ -5,17 +5,14 @@ import matplotlib.pyplot as plt
 from builder import Builder
 from bodyBuilder3D import BodyBuilder3D
 from beamBuilder2D import BeamBuilder2D
+from solver_global import Solver
+from structure import Structure
 
 st.set_page_config(page_title="Visualisierung der Balken")
 
 START = {
-    "length": 4,                                     #Speichern als DICT
-    "width": 2,
-    "depth": 1,
-    "EA": 1000.0,
-    "force" : 10.0,
     "f_start" : 1,  
-    "f_flaeche" : 1
+    "f_area" : 1
 }
 
 for k,v in START.items():
@@ -23,69 +20,167 @@ for k,v in START.items():
         st.session_state[k] = v
 
 def input_geometry():                                                           #Eingaben der Geometrie
-    laenge = st.number_input("Länge", min_value = 1, value = 2)
+    laenge = st.number_input("Länge", min_value = 2, value = 9)
     breite = st.number_input("Breite", min_value = 3, value = 4)
-    tiefe = st.number_input("Tiefe", min_value = 1, value = 2)
+    tiefe = st.number_input("Tiefe", min_value = 1, value = 1)
     ea = st.number_input("Steifigkeit", min_value = 1.0, value = 1000.0)
     kraft = st.number_input("Kraftstärke", min_value = 10, value = 10)
-    Fx = st.number_input("Kraftangriffspunkt Beginn", min_value = 0, max_value = st.session_state["length"]-1, value = START["f_start"])
-    Fx_end = st.number_input("Kraftangriffsbereich", min_value = 1, max_value = st.session_state["width"], value = breite-1)
+    F_start = st.number_input("Kraftangriffspunkt Beginn", min_value = 0, max_value = laenge-1, key="f_start")
+    F_start_area = st.number_input("Kraftangriffsbereich", min_value = 1, max_value = laenge-F_start, key = "f_area")
 
-    return laenge, breite, tiefe, ea, kraft, Fx, Fx_end
+    params = dict(length=laenge, width=breite, depth = tiefe, EA = ea, force = kraft)
 
-def init_session_states(laenge, breite, tiefe, ea, kraft, Fx, Fx_end):                              #Eingabe in SessionStates speichern
-    st.session_state["length"] = laenge                                         #Speichern als DICT
-    st.session_state["width"] = breite
-    st.session_state["depth"] = tiefe
-    st.session_state["EA"] = ea
-    st.session_state["force"] = kraft
-    st.session_state["f_start"] = Fx
-    st.session_state["f_flaeche"] = Fx_end
+    return params
 
-def geometry_beam():                                                           #Objekt gleich in 3D bauen
-    bld = BeamBuilder2D(st.session_state["length"], st.session_state["width"], st.session_state["EA"])
+def geometry_beam(params):                                                                    #Zuerst mal Balken Bauen in 2D
+    bld = BeamBuilder2D(params["length"], params["width"], params["EA"])
     bld.create_geometry()
 
-    bld.fix_node((0, st.session_state["width"]-1), [0,1])                                   #Fixierte Knoten immer fix gesetzt
-    bld.fix_node((st.session_state["length"]-1, st.session_state["width"]-1), [1, 1])
+    bld.fix_node((0, params["width"]-1), [0,1])                               #Freiheitsgrad in y-richtung eingeschränkt
+    bld.fix_node((params["length"]-1, params["width"]-1), [1, 1])   #Freiheitsgrad in x+y-Richtung eingeschränkt
 
-    fx = st.session_state["f_start"]
-    fx_end = st.session_state["f_flaeche"]
+    F_start = st.session_state["f_start"]                                            
+    F_start_area = st.session_state["f_area"]
 
-    for x in range(fx, fx + fx_end):  #Aufgebrachte Kraft
-        bld.apply_force((x, 0), [0, st.session_state["force"]])
+    for x in range(F_start, F_start + F_start_area):                                     #Angriffsbereich der Kraft. 
+        bld.apply_force((x, 0), [0, params["force"]])
 
-    beam = bld.build()
-    beam.assemble()
+    beam = bld.build()                                                          #Tatsächliches BAUEN des Balkens
+    beam.assemble()                                                             #Zusammenfügen zu einer Struktur
 
-    return bld, beam
+    return beam
 
-def plot_beam(beam):
-    fig, ax = plt.subplots()
+def plot_beam(beam):                        
+    fig, ax = plt.subplots()                                
 
-    for _,_, edata in beam.graph.edges(data = True):
-        spring = edata["spring"]
-        xi, yi = spring.i.pos
+    for _,_, edge in beam.graph.edges(data = True):             #Federninfo aus Kanten abrufen
+        spring = edge["spring"]
+        xi, yi = spring.i.pos                                   #Ausgangspositionen auslesen
         xj, yj = spring.j.pos
-
-        ax.plot([xi, xj], [yi, yj], "k-", linewidth = 1)
+        ax.plot([xi, xj], [yi, yj], "b-", linewidth = 1)        #Plotten der Feder als einzelne Linien
     
-    for _, ndata in beam.graph.nodes(data = True):
-        node = ndata["node_ref"]
-        x,y = node.pos
-        ax.plot(x,y, "ko", markersize = 3)
+    for _, node in beam.graph.nodes(data = True):               #Massenpunkte abrufen, speichern und plotten
+        mass = node["node_ref"]
+        x,y = mass.pos
+        ax.plot(x,y, "bo", markersize = 1)
     
-    ax.set_aspect("equal")
+    ax.set_aspect("equal")              
     ax.invert_yaxis()
-
     st.pyplot(fig)
 
+def plot_beam_deformed(structure, u, scale=0.2, show_nodes=True):
+    fig, ax = plt.subplots()
 
+    for _, _, edge in structure.graph.edges(data=True):
+        spring = edge["spring"]
+        xi, yi = spring.i.pos
+        xj, yj = spring.j.pos
+        ax.plot([xi, xj], [yi, yj], color="0.7", linewidth=1, zorder=1)       #Normale Darstellung Balken
 
+    for _, _, edge in structure.graph.edges(data=True):
+        spring = edge["spring"]
+        xi, yi = spring.i.pos
+        xj, yj = spring.j.pos
+        ui = u[spring.i.dof_indices]                                #Verschiebungen
+        uj = u[spring.j.dof_indices]
+        ax.plot([xi + scale*ui[0], xj + scale*uj[0]],               #verschobene Darstellung
+                [yi + scale*ui[1], yj + scale*uj[1]], color="b", linewidth=1, zorder=2)
 
-laenge, breite, tiefe, ea, kraft, Fx, Fx_end = input_geometry()
-init_session_states(laenge, breite, tiefe, ea, kraft, Fx, Fx_end)
-bld, beam = geometry_beam()
-plot_beam(beam)
+    if show_nodes:                                                              #Massenpunkte
+        for _, ndata in structure.graph.nodes(data=True):
+            node = ndata["node_ref"]
+            x, y = node.pos
+            ux, uy = u[node.dof_indices] 
+            ax.plot(x, y, "o", markersize=1, color="0.7", zorder=1)             #Normale Darstellung
+            ax.plot(x + scale*ux, y + scale*uy, "bo", markersize=1, zorder=2)   #Verschobener Plot
 
-st.write(st.session_state)
+    ax.set_aspect("equal")
+    ax.invert_yaxis()
+    st.pyplot(fig)
+
+def geometry_body():                                                             #3D Körper bauen und darstellen      
+    bld = BodyBuilder3D(params["length"], params["width"], params["depth"], params["EA"])
+    bld.create_geometry()
+
+    for z in range(params["depth"]):                                   #Freiheitsgrade definieren
+        bld.fix_node((0, 0, z), [0,1,0])                                        #Freiheitsgrad in y-richtung eingeschränkt
+        bld.fix_node((params["length"]-1, 0, z), [1, 1,1])                     #Freiheitsgrad in x+y+z-Richtung eingeschränkt
+    
+    for z in range(params["depth"]):
+        F_start = st.session_state["f_start"]                                            
+        F_start_area = st.session_state["f_area"]
+        F = params["force"]
+        for x in range(F_start, F_start + F_start_area):                                     #Angriffsbereich der Kraft. 
+            bld.apply_force((x, 0, z), [F,0,0])
+
+    body = bld.build()                                                          #Tatsächliches BAUEN des Balkens
+    body.assemble()                                                             #Form: ((xi,yi,zi) (xj,yj,zj))
+
+    return body
+
+def plot_body(body):                        
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection = "3d") #3D Plot generieren                                
+    for _,_, edge in body.graph.edges(data = True):             #Federninfo aus Kanten abrufen
+        spring = edge["spring"]
+        xi, yi, zi = spring.i.pos                                   #Ausgangspositionen auslesen
+        xj, yj, zj = spring.j.pos
+        ax.plot([xi, xj], [yi, yj], [zi, zj], "b-", linewidth = 1)        #Plotten der Feder als einzelne Linien
+
+    for _, nodes in body.graph.nodes(data = True):               #Massenpunkte abrufen, speichern und plotten
+        mass = nodes["node_ref"]
+        x,y,z = mass.pos
+        ax.scatter(x,y,z, color="b")
+
+    ax.set_aspect("equal")
+    st.pyplot(fig)
+
+def plot_body_deformed(structure, u, scale=0.2, show_nodes=True):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+
+    for _, _, edge in structure.graph.edges(data=True):
+        spring = edge["spring"]
+        xi, yi, zi = spring.i.pos
+        xj, yj, zj = spring.j.pos
+        ax.plot([xi, xj], [yi, yj], [zi, zj], color="0.7", linewidth=1, zorder=1)       #Normale Darstellung Balken
+
+    for _, _, edge in structure.graph.edges(data=True):
+        spring = edge["spring"]
+        xi, yi, zi = spring.i.pos
+        xj, yj, zj = spring.j.pos
+        ui = u[spring.i.dof_indices]                                #Verschiebungen
+        uj = u[spring.j.dof_indices]
+        ax.plot([xi + scale*ui[0], xj + scale*uj[0]],                #verschobene Darstellung
+                [yi + scale*ui[1], yj + scale*uj[1]],
+                [zi + scale*ui[2], zj + scale*uj[2]], color="b", linewidth=1, zorder=2)
+
+    if show_nodes:                                                              #Massenpunkte
+        for _, ndata in structure.graph.nodes(data=True):
+            node = ndata["node_ref"]
+            x, y, z = node.pos
+            ux, uy, uz = u[node.dof_indices] 
+            ax.scatter(x,y,z)             #Normale Darstellung
+            ax.scatter(x + scale*ux, y + scale*uy, z+scale*uz)   #Verschobener Plot
+
+    ax.set_aspect("equal")
+    ax.invert_yaxis()
+    st.pyplot(fig)
+
+params = input_geometry()
+scale = st.slider("Skalierung", 0.0, 5.0, 0.2, 0.05)
+
+if params["depth"] < 2:
+    beam = geometry_beam(params)
+    plot_beam(beam)
+    solver = Solver(beam)
+    u = solver.solve()
+    plot_beam_deformed(beam, u, scale=scale, show_nodes=False)
+    st.write(st.session_state)
+    
+else:
+    body = geometry_body()
+    plot_body(body)
+    solver3d = Solver(body)
+    u1 = solver3d.solve()
+    plot_body_deformed(body, u1, scale = scale, show_nodes=True)

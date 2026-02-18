@@ -55,5 +55,5 @@ class Builder(ABC):
 
             structure.add_spring(node_objects[pos_i], node_objects[pos_j], k)
 
-        structure.assign_dofs()                         #Freiheitsgrade zusweisen
+        structure.assign_dofs()                         #Freiheitsgrade zuweisen
         return structure
