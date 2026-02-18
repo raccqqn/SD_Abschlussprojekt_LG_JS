@@ -14,7 +14,7 @@ class OptimizerSIMP():
 
         #Ausgangsvolumen verändert sich nicht: Einmal festlegen, in Array speichern
         self.V_vec = np.array([spring.V for spring in self.springs])
-        self.V_total = np.sum(self.V_vec) 
+        self.V_total = np.sum(self.V_vec)
 
         #Mittelpunkte der Federn speichern. pos bleiben Konstant, kann einmal bestimmt werden
         self.centers = []                                       
@@ -25,7 +25,9 @@ class OptimizerSIMP():
             self.centers.append(0.5*(xi + xj))
 
         #Als Array speichern
-        self.centers = np.array(self.centers)       
+        self.centers = np.array(self.centers)
+        #Neighbor-List wird später einmalig berechnet
+        self.neighbor_list = None               
 
 
     def calc_element_energies(self, u):
@@ -42,7 +44,7 @@ class OptimizerSIMP():
             #Skalierte Globale Steifigkeit der Feder abrufen
             #Hier K_0 -> Fester Referenzwert für das Material. Potenzial des Stabes Last zu tragen, falls er voll ausgebildet wäre.
             #K_0 nutzen, da sonst "tote" Stäbe nie wiederbelebt werden könnten
-            Ko = spring.get_K                                              
+            Ko = spring.K_global(use_simp = False)                                              
 
             #Verformungsenergie der Feder berechnen
             e_spring = 0.5 * u_nds.T @ Ko @ u_nds
@@ -89,30 +91,51 @@ class OptimizerSIMP():
         Empfindlichkeiten werden in festgelegtem Radius gemittelt.
         """
         new_sens = np.zeros_like(sensits)
+        #x-Werte in Array vorladen
+        x_vals = np.array([spring.x for spring in self.springs])
         
         for i in range(len(self.edges)):
             weight_sum = 0.0
-            #Distanzen zu allen anderen Mittelpunkten berechnen
-            dists = np.linalg.norm(self.centers - self.centers[i], axis=1)
-            
-            #Indices von Mittelpunkten in Radius speichern
-            indices = np.where(dists < radius)[0]
-            
-            for idx in indices:
+
+            #Index und Distanz aus vorberechneter Liste speichern
+            neighbor_indices, dists = self.neighbor_list[i]
+
+            for idx, dist in zip(neighbor_indices, dists):
                 
                 #Skalieren, Linear mit Entfernung abnehmend
-                fac = radius - dists[idx]
+                fac = radius - dist
                 
                 #Multipliziert mit x: Nur relevante Elemente beeinflussen Nachbarn
-                new_sens[i] += fac * self.springs[idx].x * sensits[idx]
-
+                new_sens[i] += fac * x_vals[idx] * sensits[idx]
                 weight_sum += fac
             
             #Neuen sens-Wert nach Gesamtsumme  normieren, Wert darf nie 0 sein.
             #Wieder durch x teilen, um Sens auf ursprüngliches Niveau zu kriegen
-            new_sens[i] /= (max(1e-3, self.springs[i].x) * weight_sum)
+            new_sens[i] /= (max(1e-3, x_vals[i]) * weight_sum)
         
         return new_sens
+    
+    def det_neighbors(self, radius):
+        """
+        Position der Elemente bleibt während des Optimierens konstant.
+        Benachbarte Knoten können einmalig berechnet und gespeichert werden.
+        """
+        
+        neighbor_list = []
+        
+        for i in range (len(self.edges)):
+
+            #Abstände aller Centers zu Center [i]
+            dists = np.linalg.norm(self.centers - self.centers[i], axis=1)
+            
+            #Elemente innerhalb Radius auswählen
+            indices = np.where(dists < radius)[0]
+
+            #Index und Distanz speichern
+            neighbor_list.append((indices, dists[indices]))
+        
+        self.neighbor_list = neighbor_list
+
 
     def update_x(self, sensitivities, vol_fac, move=0.2, xmin=0.001):
 
@@ -163,7 +186,11 @@ class OptimizerSIMP():
         for i, spring in enumerate(self.springs):
             spring.x = x_new[i]
 
-    def optimize(self, vol_fac=0.4, max_iter=50, filter_radius = 1e-9):
+    def optimize(self, vol_fac=0.4, max_iter=50, filter_radius = None):
+
+        #Nachbarn vorberechnen, verkürzt Rechenzeit
+        if filter_radius is not None:
+            self.det_neighbors(filter_radius)
 
         for it in range(max_iter):
 
@@ -176,12 +203,17 @@ class OptimizerSIMP():
             u = solver.solve()
 
             ee = self.calc_element_energies(u)
+
             sens = self.compute_sensitivities(ee)
-
             sens_array = np.array([sens[edge] for edge in self.edges])
-            filtered_sens = self.apply_filter(sens_array, filter_radius)
 
-            self.update_x(filtered_sens, vol_fac)
+            #Optimierung kann weiterhin ohne Filter durchgeführt werden
+            if filter_radius is not None:
+                sens_final = self.apply_filter(sens_array, filter_radius)
+            else:
+                sens_final = sens_array
+            
+            self.update_x(sens_final, vol_fac)
 
             #Compliance berechnen
             compliance = solver.F.T @ u

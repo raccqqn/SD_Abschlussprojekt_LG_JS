@@ -3,7 +3,7 @@ import networkx as nx
 from structure import Structure
 from solver_global import Solver
 
-class Optimizer():
+class OptimizerESO():
 
     def __init__(self, structure: Structure):
         self.structure = structure
@@ -62,8 +62,14 @@ class Optimizer():
                     self.structure.remove_node(node_id)
                     changed = True
 
-        self.structure.assign_dofs()                                    #Struktur neu aufbauen!
-        self.structure.assemble()
+        for _, _, data in self.structure.graph.edges(data=True):
+            #Geometrie neu berechnen, da sich Knoten bewegt haben könnten
+            data["spring"].update_geometry()
+
+        #Freiheitsgrade neu zuweisen
+        self.structure.assign_dofs()
+        #Struktur neu aufbauen: In diesem Solver wird kein SIMP verwendet, Ko soll neu berechnet werden!                                    
+        self.structure.assemble(use_simp=False)                         
 
     def can_remove(self, node_id) -> bool:                              #Überprüfen, ob Node entfernt werden kann
 
@@ -81,14 +87,16 @@ class Optimizer():
 
         return True
 
-    def optimize(self, target):
+    def optimize(self, red_fac):
 
+        weight = self.structure.graph.number_of_nodes()
+        target = red_fac * weight
         c = 1
 
         while self.structure.graph.number_of_nodes() > target:
 
             current_nodes = self.structure.graph.number_of_nodes()
-            if current_nodes > 700:
+            if current_nodes > 900:
                 batch_size = 2
             else:
                 batch_size = 10

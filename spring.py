@@ -21,7 +21,12 @@ class Spring:
 
         #Geometrie ändert sich bei SIMP-Optimierung nicht, K_base kann einmalig berechnet werden
         self.K_base = self.calc_K_global_base()
-        self.get_K = self.K_base
+
+    def update_geometry(self):
+        self.L = self.length()
+        self.V = self.L
+        self.dir = self.direction()
+        self.K_base = self.calc_K_global_base()
         
     def length(self):                       #Länge ändert sich, wird hier berechnet, Abstand zurückgeben
         dis = self.j.pos - self.i.pos
@@ -60,9 +65,12 @@ class Spring:
         return O.T @ K_loc @ O              #O.T: In welche Richtungen wirkt die Kraft, zufolge einer Längenänderung der Feder?
                                             #O.T @ : Lokale Kräfte auf globale Freiheitsgrade projezieren
     
-    def K_global(self):                     
+    def K_global(self, use_simp=True):                     
         """
-        Gibt skalierte globale Steifigkeit des Federelements zurück.
+        Gibt bei Nutzung von SIMP skalierte globale Steifigkeit des Federelements zurück.
         Effizient, da K_base nicht neu berechnet werden muss.
         """
-        return (self.x ** self.pen) * self.K_base
+        if use_simp:
+            return (self.x ** self.pen) * self.K_base
+        else:
+            return self.K_base
