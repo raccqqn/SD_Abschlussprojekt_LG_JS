@@ -7,6 +7,7 @@ class OptimizerESO():
 
     def __init__(self, structure: Structure):
         self.structure = structure
+        self.inital_nodes = self.structure.graph.number_of_nodes()
 
     def calc_node_energy(self, u):
         
@@ -22,7 +23,7 @@ class OptimizerESO():
             u_nds = np.concatenate([u[spring.i.dof_indices], u[spring.j.dof_indices]]) 
 
             #Globale Steifigkeit der Feder abrufen
-            Ko = spring.K_global()                                              
+            Ko = spring.K_global(use_simp = False)                                              
 
             #Verformungsenergie der Feder berechnen
             e_spring = 0.5 * u_nds.T @ Ko @ u_nds
@@ -44,9 +45,6 @@ class OptimizerESO():
             if n_removed >= batch_size:
                 break
 
-            if node_id not in self.structure.graph:                     #Wurde schon gelöscht? Überspringen
-                continue
-
             if self.can_remove(node_id):                                #Überprüfen ob fixiert, kraftwirkung oder kein Lastpfad ohne Node
                 self.structure.remove_node(node_id)                     #Verbundene Springs werden von NetworkX automatisch gelöscht
                 n_removed += 1                                                   
@@ -59,7 +57,8 @@ class OptimizerESO():
                 #Ist Knoten nur mit einer Feder verbunden -> Mechanisch instabil, Singularity Error
                 if not self.structure.is_fixed(node_id) and \
                 not self.structure.is_mechanically_stable(node_id):
-                    self.structure.remove_node(node_id)
+                    if self.can_remove(node_id):
+                        self.structure.remove_node(node_id)
                     changed = True
 
         for _, _, data in self.structure.graph.edges(data=True):
@@ -86,8 +85,29 @@ class OptimizerESO():
             return False
 
         return True
+    
+    def det_batch_size(self, target, aggressivity):
 
-    def optimize(self, red_fac):
+        current_nodes = self.structure.graph.number_of_nodes()
+        inital_nodes = self.inital_nodes
+
+        #Maximal 15% der Nodes in einer Iteration entfernen
+        max_rem_frac = 0.05
+
+        #Fortschritt berechnen
+        progress = (inital_nodes - current_nodes) / (inital_nodes - target)
+
+        #Minimum: 20% der Maximal-Aggressivität, steigt linear mit Fortschritt an
+        ramp = 0.2 + 0.8 * progress
+
+        batch = int(max(1, max_rem_frac * current_nodes * aggressivity * ramp))
+
+        return min(batch, 50)
+
+    def optimize(self, red_fac, aggressivity):
+
+        #Sicherstellen, dass richtiges K_Global aufgestellt wurde
+        self.structure.assemble(use_simp=False)
 
         weight = self.structure.graph.number_of_nodes()
         target = red_fac * weight
@@ -95,11 +115,8 @@ class OptimizerESO():
 
         while self.structure.graph.number_of_nodes() > target:
 
-            current_nodes = self.structure.graph.number_of_nodes()
-            if current_nodes > 900:
-                batch_size = 2
-            else:
-                batch_size = 10
+            old_count = self.structure.graph.number_of_nodes()
+            batch_size = self.det_batch_size(target, aggressivity)
 
             print(f"Starting {c}. Iteration...")
             print(f"Nodes left: {self.structure.ndofs/self.structure.dim}")
@@ -111,12 +128,12 @@ class OptimizerESO():
 
             self.edit_structure(energy, batch_size)
 
-            try:
-             _ = Solver(self.structure).solve()
-            except np.linalg.LinAlgError:
-                print("Mechanismus erkannt nach Entfernen.")
+            new_count = self.structure.graph.number_of_nodes()
+
+            if old_count == new_count:
+                print("Es konnte kein weiterer Knoten gelöscht werden, passe Aggressivität an")
                 break
-        
+            
             c += 1
             
-        return self.structure, u
+        return self.structure

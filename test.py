@@ -1,15 +1,21 @@
 from beamBuilder2D import BeamBuilder2D
 from bodyBuilder3D import BodyBuilder3D
 from solver_global import Solver
-from optimizerSIMP import OptimizerSIMP
+from optimizerSimp import OptimizerSIMP
 from optimizerESO import OptimizerESO
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+import cProfile
+import pstats
+from optimizerSimp import OptimizerSIMP
+
+
+
 def build_beam():
 
-    length = 60
+    length = 40
     width = 20
     k = 1
 
@@ -18,8 +24,8 @@ def build_beam():
 
 #    bld.apply_force((98,102), [0, 0.1])
 
-    for x in range(28,32):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
-        bld.apply_force((x,0), [0,1])
+    for x in range(18,22):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
+        bld.apply_force((x,0), [0,10])
 
 #    for y in range(width):
 #        bld.fix_node((0,y), [1,1])
@@ -31,19 +37,41 @@ def build_beam():
     beam = bld.build()
     beam.assemble()
 
-    opt_old = OptimizerESO(beam)
-    opt_beam, u = opt_old.optimize(0.4)
+#    opt_old = OptimizerESO(beam)
+#    opt_beam = opt_old.optimize(0.3, 0.1)
 
-     
-#    opt = OptimizerSIMP(beam)
-#    opt_beam = opt.optimize(0.5, 25, 1.5)
+    profiler = cProfile.Profile()
+    
+  
+    opt = OptimizerSIMP(beam)
+    profiler.enable()
+    opt_beam = opt.optimize(0.4, 20, 1.5)
+    profiler.disable()
 
-#    sol = Solver(opt_beam)
-#    u = sol.solve() 
+    profiler.dump_stats("simp_profile.prof")
+
+    sol = Solver(opt_beam)
+    u = sol.solve() 
     
 
     plot_optimization_result(opt_beam, u)
+    #plot_nodes(opt_beam, u)
 
+def plot_nodes(opt_beam, u):
+    scale = 0.1                                         #Skalierung, sonst sieht man nichts
+
+    for _, data in opt_beam.graph.nodes(data=True):
+        node = data["node_ref"]
+        x, y = node.pos
+
+        ux, uy = u[node.dof_indices]
+
+        plt.plot(x, y, "ko")                           #ursprüngliche Lage
+        #plt.plot(x + scale*ux, y + scale*uy, "ro")     #verformte Lage
+
+    plt.gca().invert_yaxis()
+    plt.gca().set_aspect("equal")
+    plt.show()
 
 def plot_optimization_result(structure, u, scale_factor=0.1):
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -74,7 +102,7 @@ def plot_optimization_result(structure, u, scale_factor=0.1):
                 alpha=0.3, # Etwas transparenter, damit rot besser wirkt
                 zorder=1
             )
-        """
+
          # 2. VERSCHOBENE STRUKTUR (Rot)
         # Wir plotten die verschobene Struktur dünner, um die Tendenz zu zeigen
         if x_val > 0.1: # Nur relevante Stäbe verschoben zeigen
@@ -86,7 +114,7 @@ def plot_optimization_result(structure, u, scale_factor=0.1):
                 alpha=0.6,
                 zorder=2
             ) 
-            """
+            
 
     ax.set_aspect("equal")
     ax.set_title(f"Optimierung & Verformung (Skalierung: {scale_factor}x)")

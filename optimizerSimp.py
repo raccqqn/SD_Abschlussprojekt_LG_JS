@@ -32,11 +32,10 @@ class OptimizerSIMP():
 
     def calc_element_energies(self, u):
         
-        element_energies = {}                                                   #Dict für Energien, Format: {(i_id, j_id): Energy}
+        element_energies = np.zeros(len(self.springs))                                          
 
         #Über alle Springs in Graph iterieren, i_id: Startpunkt, j_id: Endpunkt (Nodes)
-        for i_id, j_id, data in self.structure.graph.edges(data=True):          
-            spring = data["spring"]
+        for idx, spring in enumerate(self.springs):          
 
             #Verschiebung an angehängten Nodes bestimmen
             u_nds = np.concatenate([u[spring.i.dof_indices], u[spring.j.dof_indices]]) 
@@ -50,7 +49,7 @@ class OptimizerSIMP():
             e_spring = 0.5 * u_nds.T @ Ko @ u_nds
 
             #In Dictionary speichern
-            element_energies[(i_id, j_id)] = e_spring
+            element_energies[idx] = e_spring
         
         return element_energies
 
@@ -74,14 +73,11 @@ class OptimizerSIMP():
         """
 
         #Dictionary für Speichern der Sensitivitäten der Springs
-        sens = {}                                                               
+        sens = np.zeros(len(self.springs))                                                               
 
         #Über alle Springs iterieren
-        for (i_id, j_id), ee_val in energies.items():
-
-            spring = self.structure.graph[i_id][j_id]["spring"]
-
-            sens[(i_id, j_id)] = - spring.pen * (spring.x ** (spring.pen - 1)) * ee_val * 2
+        for i, spring in enumerate(self.springs):
+            sens[i] = - spring.pen * (spring.x ** (spring.pen - 1)) * energies[i] * 2
 
         return sens
 
@@ -160,7 +156,7 @@ class OptimizerSIMP():
         l2 = 1e9
 
         #Aufhören, wenn Grenzen fast übereinander liegen
-        while (l2 - l1) > 10e-6:
+        while (l2 - l1) > 10e-4:
             #Mitte als Startwert
             lam = (l1 + l2  ) / 2             
 
@@ -205,13 +201,12 @@ class OptimizerSIMP():
             ee = self.calc_element_energies(u)
 
             sens = self.compute_sensitivities(ee)
-            sens_array = np.array([sens[edge] for edge in self.edges])
 
             #Optimierung kann weiterhin ohne Filter durchgeführt werden
             if filter_radius is not None:
-                sens_final = self.apply_filter(sens_array, filter_radius)
+                sens_final = self.apply_filter(sens, filter_radius)
             else:
-                sens_final = sens_array
+                sens_final = sens
             
             self.update_x(sens_final, vol_fac)
 

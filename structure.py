@@ -77,9 +77,7 @@ class Structure:
                 spring.i.dof_indices, spring.j.dof_indices
             ))
 
-            for a in range(len(indices)):                                      #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
-                for b in range(len(indices)):
-                    K[indices[a], indices[b]] += Ko[a, b]
+            K[np.ix_(indices, indices)] += Ko                               #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
 
         self.K_global = K
 
