@@ -15,6 +15,7 @@ class OptimizerSIMP():
         #Ausgangsvolumen verändert sich nicht: Einmal festlegen, in Array speichern
         self.V_vec = np.array([spring.V for spring in self.springs])
         self.V_total = np.sum(self.V_vec)
+        self.L_vals = np.array([spring.L for spring in self.springs])
 
         #Mittelpunkte der Federn speichern. pos bleiben Konstant, kann einmal bestimmt werden
         self.centers = []                                       
@@ -27,7 +28,7 @@ class OptimizerSIMP():
         #Als Array speichern
         self.centers = np.array(self.centers)
         #Neighbor-List wird später einmalig berechnet
-        self.neighbor_list = None               
+        self.neighbor_list = None         
 
 
     def calc_element_energies(self, u):
@@ -96,18 +97,17 @@ class OptimizerSIMP():
             #Index und Distanz aus vorberechneter Liste speichern
             neighbor_indices, dists = self.neighbor_list[i]
 
-            for idx, dist in zip(neighbor_indices, dists):
-                
-                #Skalieren, Linear mit Entfernung abnehmend
-                fac = radius - dist
-                
-                #Multipliziert mit x: Nur relevante Elemente beeinflussen Nachbarn
-                new_sens[i] += fac * x_vals[idx] * sensits[idx]
-                weight_sum += fac
+            #Skalieren, Linear mit Entfernung abnehmend
+            fac = radius - dists
+            
+            #Multipliziert mit x: Nur relevante Elemente beeinflussen Nachbarn
+            weighted_sum = np.sum(fac * x_vals[neighbor_indices] * sensits[neighbor_indices])
+
+            weight_sum += np.sum(fac)
             
             #Neuen sens-Wert nach Gesamtsumme  normieren, Wert darf nie 0 sein.
             #Wieder durch x teilen, um Sens auf ursprüngliches Niveau zu kriegen
-            new_sens[i] /= (max(1e-3, x_vals[i]) * weight_sum)
+            new_sens[i] = weighted_sum / (max(1e-3, x_vals[i]) * weight_sum)
         
         return new_sens
     
@@ -214,4 +214,17 @@ class OptimizerSIMP():
             compliance = solver.F.T @ u
             print(f"Compliance: {compliance}")
 
-        return self.structure
+            #Werte pro Iteration zurückgeben
+
+            x_vals = np.array([spring.x for spring in self.springs])
+             
+            yield {
+                "iter": it,
+                "x": x_vals,
+                #ee ist Array, ohne copy wird auf den selben Speicher verwiesen, kritisch!
+                "energies": ee.copy(),
+                "volume": np.sum(x_vals * self.L_vals),                                                              
+                "compliance": compliance
+            } 
+    
+

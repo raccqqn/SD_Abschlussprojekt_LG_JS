@@ -9,6 +9,9 @@ class OptimizerESO():
         self.structure = structure
         self.inital_nodes = self.structure.graph.number_of_nodes()
 
+        self.initial_node_ids = list(self.structure.graph.nodes())
+
+
     def calc_node_energy(self, u):
         
         node_ids = list(self.structure.graph.nodes())                           
@@ -59,10 +62,10 @@ class OptimizerESO():
                 not self.structure.is_mechanically_stable(node_id):
                     if self.can_remove(node_id):
                         self.structure.remove_node(node_id)
-                    changed = True
+                        changed = True
 
         for _, _, data in self.structure.graph.edges(data=True):
-            #Geometrie neu berechnen, da sich Knoten bewegt haben könnten
+            #Geometrie neu berechnen, da sich Knoten verändern könnten (theoretisch)
             data["spring"].update_geometry()
 
         #Freiheitsgrade neu zuweisen
@@ -135,5 +138,14 @@ class OptimizerESO():
                 break
             
             c += 1
-            
-        return self.structure
+
+            #Mask, so kann für Visualisierung bestimmt werden ob Knoten noch existiert
+            current_nodes = set(self.structure.graph.nodes())
+            mask = np.array([node_id in current_nodes for node_id in self.initial_node_ids])
+
+            yield {
+                "iter": c,
+                "node_mask": mask,
+                "energies": energy,
+                "remaining_nodes": new_count
+            }

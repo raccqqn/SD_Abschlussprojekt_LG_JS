@@ -77,9 +77,11 @@ class Structure:
                 spring.i.dof_indices, spring.j.dof_indices
             ))
 
-            K[np.ix_(indices, indices)] += Ko                               #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
+            #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
+            idx = indices                           
+            K[idx[:, None], idx] += Ko
 
-        self.K_global = K
+            self.K_global = K
 
 
     def assemble_force_vector(self):                                            #Kraftvektor bauen

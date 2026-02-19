@@ -8,14 +8,14 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 import cProfile
-import pstats
 from optimizerSimp import OptimizerSIMP
+
 
 
 
 def build_beam():
 
-    length = 40
+    length = 80
     width = 20
     k = 1
 
@@ -24,8 +24,8 @@ def build_beam():
 
 #    bld.apply_force((98,102), [0, 0.1])
 
-    for x in range(18,22):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
-        bld.apply_force((x,0), [0,10])
+    for x in range(38,42):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
+        bld.apply_force((x,0), [0,2])
 
 #    for y in range(width):
 #        bld.fix_node((0,y), [1,1])
@@ -33,22 +33,39 @@ def build_beam():
 
     bld.fix_node((0,width-1), [0,1])
     bld.fix_node((length-1,width-1), [1,1])
+    #bld.fix_node((0, 0), [0,1])
     
     beam = bld.build()
     beam.assemble()
 
+#-------------------------------------------------------------------------------------------------------------------------------
+
 #    opt_old = OptimizerESO(beam)
-#    opt_beam = opt_old.optimize(0.3, 0.1)
+#    opt_beam = opt_old.optimize(0.6, 0.4)
+
+#    for state in opt_beam:
+#        print(state)
+
+#    opt_beam = opt_old.structure
+#-------------------------------------------------------------------------------------------------------------------------------
 
     profiler = cProfile.Profile()
-    
-  
-    opt = OptimizerSIMP(beam)
     profiler.enable()
-    opt_beam = opt.optimize(0.4, 20, 1.5)
-    profiler.disable()
 
+    opt = OptimizerSIMP(beam)
+    opt_beam = opt.optimize(0.4, 20, 1.5)
+
+    #Schrittweiße Lösen, Dic mit {iter:, x:, energies:, compliance:} wird nach jeder Iteration zurückgegeben!
+    #Energien und x nicht indiziert! 
+    for state in opt_beam:
+        print(state)    #Hier können die Daten ausgelesen werden
+    
+    opt_beam = opt.structure
+
+    profiler.disable()
     profiler.dump_stats("simp_profile.prof")
+    
+#--------------------------------------------------------------------------------------------------------------------------------
 
     sol = Solver(opt_beam)
     u = sol.solve() 
@@ -102,7 +119,7 @@ def plot_optimization_result(structure, u, scale_factor=0.1):
                 alpha=0.3, # Etwas transparenter, damit rot besser wirkt
                 zorder=1
             )
-
+        
          # 2. VERSCHOBENE STRUKTUR (Rot)
         # Wir plotten die verschobene Struktur dünner, um die Tendenz zu zeigen
         if x_val > 0.1: # Nur relevante Stäbe verschoben zeigen
@@ -113,7 +130,8 @@ def plot_optimization_result(structure, u, scale_factor=0.1):
                 linewidth=1,
                 alpha=0.6,
                 zorder=2
-            ) 
+            )
+        
             
 
     ax.set_aspect("equal")
