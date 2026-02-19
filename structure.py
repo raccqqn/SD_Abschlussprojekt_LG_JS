@@ -44,8 +44,8 @@ class Structure:
     def get_ndofs(self): 
         return self.ndofs                                                   # Anzahl möglicher Freiheitsgrade zurückgeben
         
-    def assemble(self): # Zusammenbauen
-        self.assemble_stiffnes()
+    def assemble(self, use_simp=True): # Zusammenbauen
+        self.assemble_stiffnes(use_simp)
         self.assemble_force_vector()
 
 
@@ -65,23 +65,23 @@ class Structure:
         fixed = np.any(node.fixed)                                          #Ein Element aus Dictionary true?
         return fixed
 
-    def assemble_stiffnes(self):
+    def assemble_stiffnes(self, use_simp=True):
         K = np.zeros((self.ndofs, self.ndofs))
 
         for _, _, data in self.graph.edges(data=True):                      #Über alle Federelemente iterieren
             spring = data["spring"]
 
-            Ko = spring.K_global()                                          #Globale Steifigkeit berechnen
+            Ko = spring.K_global(use_simp=use_simp)                         #Globale Steifigkeit berechnen - Standardmäßig nach SIMP skaliert
 
             indices = np.concatenate((                                      #Aktuelle Freiheits-Indizes abrufen 
                 spring.i.dof_indices, spring.j.dof_indices
             ))
 
-            for a in range(len(indices)):                                      #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
-                for b in range(len(indices)):
-                    K[indices[a], indices[b]] += Ko[a, b]
+            #Globale Steifigkeit des jeweiligen Federelements in Steifigkeitsmatrix abspeichern
+            idx = indices                           
+            K[idx[:, None], idx] += Ko
 
-        self.K_global = K
+            self.K_global = K
 
 
     def assemble_force_vector(self):                                            #Kraftvektor bauen
