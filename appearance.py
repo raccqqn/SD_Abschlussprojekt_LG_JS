@@ -7,30 +7,157 @@ from bodyBuilder3D import BodyBuilder3D
 from beamBuilder2D import BeamBuilder2D
 from solver_global import Solver
 from structure import Structure
+from optimizerESO import OptimizerESO
+from optimizerSimp import OptimizerSIMP
 
 st.set_page_config(page_title="Visualisierung der Balken")
+st.header("Maße des Balkens")
+st.subheader("Erste Eingaben")
+
+if "active_optimizer" not in st.session_state:
+    st.session_state["active_optimizer"] = None
+
+if "current_page" not in st.session_state:
+    st.session_state["current_page"] = None
+
+if "values_changed" not in st.session_state:
+    st.session_state["values_changed"] = False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 START = {
     "f_start" : 1,  
-    "f_area" : 1
+    "f_area" : 1,
 }
+
 
 for k,v in START.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-def input_geometry():                                                           #Eingaben der Geometrie
-    laenge = st.number_input("Länge", min_value = 2, value = 9)
-    breite = st.number_input("Breite", min_value = 3, value = 4)
-    tiefe = st.number_input("Tiefe", min_value = 1, value = 1)
-    ea = st.number_input("Steifigkeit", min_value = 1.0, value = 1000.0)
-    kraft = st.number_input("Kraftstärke", min_value = 10, value = 10)
-    F_start = st.number_input("Kraftangriffspunkt Beginn", min_value = 0, max_value = laenge-1, key="f_start")
-    F_start_area = st.number_input("Kraftangriffsbereich", min_value = 1, max_value = laenge-F_start, key = "f_area")
+def set_optimizer(name):
+    st.session_state["active_optimizer"] = name
+
+def ui_geometry():
+    c1, c2, c3, c4 = st.columns(4)
+    with c1: laenge = st.number_input("Länge", min_value = 2, value = 9, width=150)
+    with c2: breite = st.number_input("Breite", min_value = 3, value = 4, width=150)
+    with c3: tiefe = st.number_input("Tiefe", min_value = 1, value = 1, width=150)
+    with c4: ea = st.number_input("Steifigkeit", min_value = 1.0, value = 1000.0)
+    
+    return laenge, breite, tiefe, ea
+
+def ui_force(laenge):
+    c1, c2, c3 = st.columns(3)
+    with c1: kraft = st.number_input("Kraftstärke", min_value = 10, value = 10)
+    with c2: F_start = st.number_input("Angriffspunkt", min_value = 0, max_value = laenge-1, key="f_start")
+    with c3: F_start_area = st.number_input("Linienkraft?", min_value = 1, max_value = laenge-F_start, key = "f_area")
+    
+    return kraft, F_start, F_start_area
+
+def ui_festlager():
+    off = st.toggle("Festlager vordefinieren?")
+    if off:
+        pass # In zukunft festlager an den Ecken definieren, ansonsten frei wählbar
+
+def ui_optimizer():
+    st.subheader("Chooses your Optimierer")
+    c1, c2 = st.columns(2)
+    with c1: 
+        if st.button("ESO"):
+            set_optimizer("ESO")
+    with c2: 
+        if st.button("SIMP"):
+            set_optimizer("SIMP")
+    
+    st.write("Aktivierter Optimierer:", st.session_state["active_optimizer"])
+
+
+def input_values():
+    laenge, breite, tiefe, ea = ui_geometry()
+    kraft, F_start, F_start_area = ui_force(laenge)
+    ui_festlager()
+    ui_optimizer()
 
     params = dict(length=laenge, width=breite, depth = tiefe, EA = ea, force = kraft)
-
     return params
+
+def active_ESO(object, VolumenFrac, Aggressivity):
+    opt = OptimizerESO(object)
+    opt_object = opt.optimize(VolumenFrac, Aggressivity)
+    for state in opt_object:
+        print(state)
+    opt_object = opt.structure
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def geometry_beam(params):                                                                    #Zuerst mal Balken Bauen in 2D
     bld = BeamBuilder2D(params["length"], params["width"], params["EA"])
@@ -167,7 +294,7 @@ def plot_body_deformed(structure, u, scale=0.2, show_nodes=True):
     ax.invert_yaxis()
     st.pyplot(fig)
 
-params = input_geometry()
+params = input_values()
 scale = st.slider("Skalierung", 0.0, 5.0, 0.2, 0.05)
 
 if params["depth"] < 2:
