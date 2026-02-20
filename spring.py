@@ -6,13 +6,13 @@ class Spring:
     Beschreibt ein Federelement zwischen zwei Knoten.
     Berechnet die Eigenschaften (Länge, Richtung) sowie die lokale und globale Steifigkeitsmatrix.
     """
-    def __init__(self, node_i: Node, node_j: Node, k):
+    def __init__(self, node_i: Node, node_j: Node, k, x = 1.0):
         self.i = node_i                     #i-Knoten
         self.j = node_j                     #j-Knoten
         self.k = k                          #Federsteifigkeit
 
         #SIMP-Optimierung
-        self.x = 1.0                        #Wichtigkeits-Wert, wird mit 1 initialisiert, kann als "Dichte" interpretiert werden
+        self.x = x                          #Wichtigkeits-Wert, wird mit 1 initialisiert, kann als "Dichte" interpretiert werden
         self.pen = 3                        #Penalisation-Faktor, standardmäßig 3
 
         self.L = self.length()

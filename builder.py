@@ -31,7 +31,7 @@ class Builder(ABC):
         self.nodes_data[pos]["fixed"] = np.array(mask, dtype=bool)
 
     def build(self):
-        structure = Structure(self.dim)
+        structure = Structure(self.EA, self.dim)
 
         node_objects = {}               #Temporäreres Speichern der erstellten Nodes für Erstellung der Springs
         node_id = 0

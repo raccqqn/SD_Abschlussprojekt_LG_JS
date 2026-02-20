@@ -6,7 +6,8 @@ from spring import Spring
 
 class Structure:
 
-    def __init__(self, dim: int):
+    def __init__(self, EA: float, dim: int):
+        self.EA = EA
         self.dim = dim                          # Dimension übergeben
         self.graph = nx.Graph()                 # Dimensionslosen Graph erstellen
         self.ndofs = None                       # Gesamtanzahl Freiheitsgrade
@@ -29,8 +30,8 @@ class Structure:
     def remove_node(self, node_id: Node):
         self.graph.remove_node(node_id)                                     #Verbundene Springs werden mit gelöscht!
 
-    def add_spring(self, node_i: Node, node_j: Node, k):
-        spring = Spring(node_i, node_j, k)                                  #Spring Instanz an Knoten i und j erstellen
+    def add_spring(self, node_i: Node, node_j: Node, k, x = 1.0):
+        spring = Spring(node_i, node_j, k, x)                                  #Spring Instanz an Knoten i und j erstellen
         self.graph.add_edge(node_i.id, node_j.id, spring=spring)            #Feder zwischen Knoten als Edge hinzufügen, Objekt als Attribut
 
     def assign_dofs(self):                                                  # Nummerierung der Freiheitsgrade + hinzufügen zum Knoten
@@ -135,3 +136,44 @@ class Structure:
         rank = np.linalg.matrix_rank(directions)
 
         return rank >= self.dim
+    
+
+    #Statisch, da Funktion unabhängig von self funktionieren soll aber rein logisch hier hin gehört
+    @staticmethod
+    def build_from_data(data, EA, dim):
+        """Erzeugt eine Structure-Instanz aus gespeicherten Rohdaten"""
+
+        #Neue Instanz erstellen
+        struct = Structure(EA, dim)
+        #Informationen über Nodes in Dict speichern
+        nodes_dict = {}
+
+        #Über Data iterieren, relevante Daten auslesen
+        for i, n_id in enumerate(data["node_ids"]):
+            node_id = int(n_id) 
+            pos = data["pos"][i]
+            
+            #Node-Objekt erstellen
+            node = Node(node_id, pos)
+            struct.add_node(node, force=data["forces"][i], fixed=data["fixed"][i])
+            
+            #In Dict für anschließende Verwendung speichern
+            nodes_dict[node_id] = node
+
+        #Über Data iterieren, verbundene Knoten auslesen
+        for idx, edge in enumerate(data["con_nodes"]):
+            i_id, j_id = int(edge[0]), int(edge[1])
+            node_i = nodes_dict[i_id]
+            node_j = nodes_dict[j_id]
+                
+            #Steifigkeit berechnen
+            L = np.linalg.norm(node_j.pos - node_i.pos)
+            k = EA / L if L > 0 else 0
+            x = data["x"][idx]
+
+            struct.add_spring(node_i, node_j, k, x)
+
+        #Freiheitsgrade zuweisen
+        struct.assign_dofs()
+
+        return struct

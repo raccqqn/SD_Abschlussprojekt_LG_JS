@@ -133,7 +133,7 @@ class OptimizerSIMP():
         self.neighbor_list = neighbor_list
 
 
-    def update_x(self, sensitivities, vol_fac, move=0.2, xmin=0.001):
+    def update_x(self, sensitivities, vol_fac, move=0.3, xmin=0.001):
 
         #Zielvolumen berechnen
         target_volume = vol_fac * self.V_total
@@ -168,7 +168,7 @@ class OptimizerSIMP():
             #Maximum: Wert darf sich nie weiter als "Schrittweite" von altem Wert entfernen, sonst sprunghafte Änderungen
             x_new = np.clip(x_new, np.maximum(xmin, x_old - move), 
                             np.minimum(1.0, x_old + move))
-
+            
             #Neues Volumen berechnen, skaliert
             current_vol = np.sum(x_new * self.V_vec)
 
@@ -183,6 +183,10 @@ class OptimizerSIMP():
             spring.x = x_new[i]
 
     def optimize(self, vol_fac=0.4, max_iter=50, filter_radius = None):
+
+        #Vernünftigeren Startwert für x festlegen
+        for spring in self.springs:
+            spring.x = vol_fac
 
         #Nachbarn vorberechnen, verkürzt Rechenzeit
         if filter_radius is not None:
@@ -225,6 +229,7 @@ class OptimizerSIMP():
                 "energies": ee.copy(),
                 "volume": np.sum(x_vals * self.L_vals),                                                              
                 "compliance": compliance
-            } 
+            }
+
     
 
