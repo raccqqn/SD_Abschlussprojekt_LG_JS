@@ -33,7 +33,7 @@ def build_beam():
 
     bld.fix_node((0,width-1), [0,1])
     bld.fix_node((length-1,width-1), [1,1])
-    #bld.fix_node((0, 0), [0,1])
+    bld.fix_node((0, 0), [0,1])
     
     beam = bld.build()
     beam.assemble()

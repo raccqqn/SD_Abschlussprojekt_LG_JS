@@ -1,0 +1,33 @@
+import streamlit as st
+from modules.state import init_session_states, init_remove_input_force_support
+from modules.ui_parts import ui_geometry
+from modules.geometry import build_object
+from plots import Plotter
+
+init_session_states()                               #Notwendig, damit bei einem refresh der page die Daten geladen werden
+c1, c2 = st.columns(2)
+with c1: 
+    if st.button("Zurück", use_container_width=True):
+        st.switch_page("startseite.py")
+with c2: 
+    if st.button("Weiter", use_container_width=True):
+        st.switch_page("pages/2_Festlager_und_Kräfte.py")
+st.divider()
+st.header("Grundmaße definieren")
+st.subheader("Parameter eingeben und bestätigen")
+
+plotter = Plotter()
+
+ui_geometry()
+
+if st.session_state["ui_input_changed"] == True:    #Bei jedem Bestätigen, werden die gespeicherten Kräfte und Lager gelöscht
+    init_remove_input_force_support()
+
+st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA)
+structure = build_object()                          #Struktur wird gebaut, für den Plot
+
+if st.session_state.depth > 1:                      #Je nachdem ob 2d oder 3d werden andere Plot Verfahren genutzt
+    plotter.body_undeformed(structure, True)
+
+else:
+    plotter.beam_undeformed(structure, True, 2, 1)

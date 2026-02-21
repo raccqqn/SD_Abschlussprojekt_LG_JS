@@ -1,13 +1,11 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Plotter:
     """
-    Plotter, der einfach das plotten auslagert
+    Plotter, der einfach das plotten auslagert - später noch perfektionieren, oder überhaupt austauschen mit besserer Anwendung :)
     """
-
-    def __init__(self, invert_y: bool = True):
-        self.invert_y = invert_y
 
     def beam_undeformed(self, beam, show_nodes: bool = True, node_size: float = 1.0, linewidth: float = 1.0, supports = False):
         fig, ax = plt.subplots()                                
@@ -113,7 +111,7 @@ class Plotter:
         ax.invert_yaxis()
         st.pyplot(fig)
 
-    def plot_optimization_result(structure, u, scale_factor=0.1):
+    def plot_optimization_result(self, structure, u, scale_factor=0.1):
         fig, ax = plt.subplots(figsize=(12, 8))
         
         # Alle Edges (Stäbe) durchlaufen
@@ -134,34 +132,35 @@ class Plotter:
             pos_j_def = pos_j + scale_factor * u_j
 
             # 1. OPTIMIERTE STRUKTUR (Grau/Schwarz)
-            if x_val > 0.01:
-                ax.plot(
-                    [pos_i[0], pos_j[0]], [pos_i[1], pos_j[1]],
-                    color=plt.cm.Greys(x_val),
-                    linewidth=5 * x_val,
-                    alpha=0.3, # Etwas transparenter, damit rot besser wirkt
-                    zorder=1
-                )
+            #if x_val > 0.01:
+            ax.plot(
+                [pos_i[0], pos_j[0]], [pos_i[1], pos_j[1]],
+                color=plt.cm.Greys(x_val),
+                linewidth=5 * x_val,
+                alpha=0.3, # Etwas transparenter, damit rot besser wirkt
+                zorder=1
+            )
             
             # 2. VERSCHOBENE STRUKTUR (Rot)
             # Wir plotten die verschobene Struktur dünner, um die Tendenz zu zeigen
-            if x_val > 0.1: # Nur relevante Stäbe verschoben zeigen
-                ax.plot(
-                    [pos_i_def[0], pos_j_def[0]], [pos_i_def[1], pos_j_def[1]],
-                    color='red',
-                    linestyle='--',
-                    linewidth=1,
-                    alpha=0.6,
-                    zorder=2
-                )
+            #if x_val > 0.1: # Nur relevante Stäbe verschoben zeigen
+            #    ax.plot(
+            #        [pos_i_def[0], pos_j_def[0]], [pos_i_def[1], pos_j_def[1]],
+            #        color='red',
+             #       linestyle='--',
+              #      linewidth=1,
+               #     alpha=0.6,
+                #    zorder=2
+                #)
             
-            ax.set_aspect("equal")
-            ax.set_title(f"Optimierung & Verformung (Skalierung: {scale_factor}x)")
-            ax.axis('off')
-            ax.invert_yaxis()
-            plt.show()
+        ax.set_aspect("equal")
+        ax.set_title(f"Optimierung & Verformung (Skalierung: {scale_factor}x)")
+        ax.axis('off')
+        ax.invert_yaxis()
+        st.pyplot(fig)
 
     def plot_nodes(opt_beam, u, deformed = False):
+        fig, ax = plt.subplots(figsize=(12, 8))
         scale = 0.1                                         #Skalierung, sonst sieht man nichts
 
         for _, data in opt_beam.graph.nodes(data=True):
@@ -175,6 +174,6 @@ class Plotter:
             else:                    
                 plt.plot(x + scale*ux, y + scale*uy, "ro")      #verformte Lage
 
-        plt.gca().invert_yaxis()
-        plt.gca().set_aspect("equal")
-        plt.show()
+        ax.invert_yaxis()
+        ax.set_aspect("equal")
+        st.pyplot(fig)
