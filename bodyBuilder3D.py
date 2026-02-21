@@ -45,7 +45,7 @@ class BodyBuilder3D(Builder):
 
                     if x > 0 and y > 0:                         #Flächendiagonalen in x/y Ebene
                         self._add((x-1, y-1, z), pos)
-                        self._add((x-1, y, z), (x, y-1, z))  
+                        self._add((x-1, y, z), (x, y-1, z))     
                     
                     if y > 0 and z > 0:                         #Flächendiagonalen in y/z Ebene
                         self._add((x, y-1, z-1), pos)
@@ -58,4 +58,4 @@ class BodyBuilder3D(Builder):
                     if x > 0 and y > 0 and z > 0:               #Raumdiagonale
                         self._add((x-1, y-1, z-1), pos)
         
-        self.elements = list(self._elements)                    #Menge in Liste umwandeln
+        self.elements = list(self._elements)                    #Menge in Liste umwandeln: ((xi,yi,zi) (xj,yj,zj))
