@@ -41,10 +41,13 @@ def ui_festlager_3d():
     c1,c2,c3,c4 = st.columns(4)
 
     with c1: x = st.number_input("x", min_value = 0, max_value = st.session_state.length - 1 , value = 0, key = "x_sup") 
-    with c2: y = st.number_input("y", min_value = 0, max_value = st.session_state.width - 1, value = 0, key = "y_sup")
-    with c3: 
-        z = st.number_input("z", min_value = 0, max_value = st.session_state.depth - 1, value = 0, key = "z_sup")
-        full_row = st.toggle("Ganze Tiefe", value = False, key = "full_row")
+    
+    with c2: 
+        y = st.number_input("y", min_value = 0, max_value = st.session_state.width - 1, value = 0, key = "y_sup")
+        full_row = st.toggle("Ganze Breite", value = False, key = "full_row")
+    
+    with c3: z = st.number_input("z", min_value = 0, max_value = st.session_state.depth - 1, value = 0, key = "z_sup")
+        
     with c4: 
         selection = st.segmented_control("Fixierte Freiheitsgrade", ["Ux", "Uy", "Uz"], selection_mode="multi", key = "dofs_sup")
         mask = ["Ux" in selection, "Uy" in selection, "Uz" in selection]                #Maske mit True/False, je nach Auswahl
@@ -54,7 +57,7 @@ def ui_festlager_3d():
         if any(mask):                                                                   #wenn full_row gewählt wird, ist die gesamt Reihe gemeint
             if full_row == True:
                 for i in range(st.session_state.depth):                                 #Iterieren über die ganze Tiefe
-                    pos = (int(x), int(y), int(i))                                      #Pos aus Eingabe speichern
+                    pos = (int(x), int(i), int(z))                                      #Pos aus Eingabe speichern
                     st.session_state["supports"][pos] = {"pos" : pos, "mask" : mask}    #Pos und True/False mask wird gespeichert                                              
             else:
                 pos = (int(x), int(y), int(z))                                          # Koordinate

@@ -11,10 +11,10 @@ plotter = Plotter()
 
 c1, c2 = st.columns(2)
 with c1: 
-    if st.button("Zurück", use_container_width=True):
+    if st.button("Zurück", width="stretch"):
         st.switch_page("pages/1_Grundmaße.py")
 with c2: 
-    if st.button("Weiter", use_container_width=True):
+    if st.button("Weiter", width="stretch"):
         st.switch_page("pages/3_Optimierer.py")
 st.divider()
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Platzhalter Zum Checken derweil
@@ -51,12 +51,33 @@ with tab2:
     
     ui_force_expander()
     
+placeholder = st.empty()
 
-structure = build_object()                      #= Structure()   
-st.session_state["structure"] = structure       #Speichern für Optimierung auf nächster Seite
+#IMMER aktuellen Zustand anzeigen, sonst "springt" Seite bei Aktualisierung
+if "cached_fig" in st.session_state and st.session_state["cached_fig"] is not None:
+    placeholder.plotly_chart(st.session_state["cached_fig"], width="stretch", key="plot_static")
 
-if st.session_state["depth"] > 1:               #Plotten der Darstellung
-    plotter.body_undeformed(structure, True)
+#"ID" der aktuellen Kräfte/Lager speichern
+current_config_id = len(st.session_state.get("forces", [])) + len(st.session_state.get("supports", []))
 
-else:
-    plotter.beam_undeformed(structure, True, 2,1)
+#Überprüfen, ob alte ID bereits existiert
+if "last_config_id" not in st.session_state:
+    st.session_state["last_config_id"] = None
+
+#Nur speichern, neu plotten falls ein neuer Wert hinzugefügt wurde!
+if current_config_id != st.session_state["last_config_id"]:
+
+    structure = build_object()                      #= Structure()   
+    st.session_state["structure"] = structure       #Speichern für Optimierung auf nächster Seite
+
+    if st.session_state["depth"] > 1:               #Plotten der Darstellung
+        fig = plotter.body_undeformed(structure, True, display=False)
+
+    else:
+        fig = plotter.beam_undeformed(structure, True, 2, 1, display=False)
+
+    st.session_state["cached_fig"] = fig
+    st.session_state["last_config_id"] = current_config_id
+
+    #Neuen Zustand zeichnen
+    placeholder.plotly_chart(fig, width="stretch", key="plot_update")

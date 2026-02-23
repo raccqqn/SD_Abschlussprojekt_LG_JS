@@ -17,9 +17,9 @@ import cProfile
 
 def build_beam():
 
-    """
-    length = 10
-    width = 10
+
+    length = 100
+    width = 20
     EA = 1
 
     bld = BeamBuilder2D(length,width,EA)
@@ -27,7 +27,7 @@ def build_beam():
 
 #    bld.apply_force((98,102), [0, 0.1])
 
-    for x in range(5,6):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
+    for x in range(45,55):                              #Kraft wirkt verteilt über festgelegte Länge, bessere Ergebnisse
         bld.apply_force((x,0), [0,10])
 
 #    for y in range(width):
@@ -36,11 +36,10 @@ def build_beam():
 
     bld.fix_node((0,width-1), [0,1])
     bld.fix_node((length-1,width-1), [1,1])
-    bld.fix_node((0, 0), [0,1])
     
     beam = bld.build()
     beam.assemble()
-    """
+
     
 #-------------------------------------------------------------------------------------------------------------------------------
 
@@ -53,9 +52,9 @@ def build_beam():
 #    opt_beam = opt_old.structure
 #-------------------------------------------------------------------------------------------------------------------------------
 
-    manager = StructureManager()
+#    manager = StructureManager()
 
-    beam = manager.load("test")
+#    beam = manager.load("test")
 
     opt = OptimizerSIMP(beam)
     opt_beam = opt.optimize(0.4, 20, 1.5)
@@ -149,7 +148,7 @@ def plot_optimization_result(structure, u, scale_factor=0.1):
 
 def build_body():
     length = 20
-    width = 10
+    width = 5
     depth = 5
     k = 1
     F = 3
@@ -169,17 +168,20 @@ def build_body():
     body.assemble()
 
     opt = OptimizerSIMP(body)
-    
     opt_body = opt.optimize(0.4, 30, 1.5)
     
-    sol = Solver(opt_body)
+    for state in opt_body:
+        print(state)
+    
+
+    opt_body_fin = opt.structure
+    sol = Solver(opt_body_fin)
     u = sol.solve()
-    plot_optimization_result_3d(opt_body, u)
 
 
 
 if __name__ == "__main__":
-    build_beam()
+    build_body()
 
 
 

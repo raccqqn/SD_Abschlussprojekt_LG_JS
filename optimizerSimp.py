@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from structure import Structure
 from solver_global import Solver
+import copy
 
 class OptimizerSIMP():
 

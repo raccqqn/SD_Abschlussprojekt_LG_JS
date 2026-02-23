@@ -2,8 +2,8 @@ import streamlit as st
 
 Default = {
     "page" : 1,
-    "length" : 9,
-    "width" : 4,
+    "length" : 100,
+    "width" : 20,
     "depth" : 1,
     "EA" : 1000.0,
     "supports" : {},

@@ -7,17 +7,16 @@ from plots import Plotter
 init_session_states()                               #Notwendig, damit bei einem refresh der page die Daten geladen werden
 c1, c2 = st.columns(2)
 with c1: 
-    if st.button("Zurück", use_container_width=True):
+    if st.button("Zurück", width="stretch"):
         st.switch_page("startseite.py")
 with c2: 
-    if st.button("Weiter", use_container_width=True):
+    if st.button("Weiter", width="stretch"):
         st.switch_page("pages/2_Festlager_und_Kräfte.py")
 st.divider()
 st.header("Grundmaße definieren")
 st.write("Die gewünschten Paramter eingeben und bestätigen.")
 
 plotter = Plotter()
-
 ui_geometry()
 
 if st.session_state["ui_input_changed"] == True:    #Bei jedem Bestätigen, werden die gespeicherten Kräfte und Lager gelöscht
@@ -26,8 +25,12 @@ if st.session_state["ui_input_changed"] == True:    #Bei jedem Bestätigen, werd
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA)
 structure = build_object()                          #Struktur wird gebaut, für den Plot
 
+placeholder = st.empty()
+
 if st.session_state.depth > 1:                      #Je nachdem ob 2d oder 3d werden andere Plot Verfahren genutzt
-    plotter.body_undeformed(structure, True)
+    fig = plotter.body_undeformed(structure, True, display=False)
 
 else:
-    plotter.beam_undeformed(structure, True, 2, 1)
+    fig = plotter.beam_undeformed(structure, True, 2, 1, display=False)
+
+placeholder.plotly_chart(fig, width="stretch")
