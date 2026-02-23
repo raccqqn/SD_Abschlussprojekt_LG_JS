@@ -4,6 +4,7 @@ from modules.ui_optimizer import opt_eso, plot_opt, opt_SIMP
 from modules.state import init_session_states
 from plots import Plotter
 import copy
+
 init_session_states()   #Notwendig, damit bei einem refresh der page die Daten geladen werden
 
 c1, c2 = st.columns(2)
@@ -14,10 +15,9 @@ with c2:
     if st.button("Hauptseite", use_container_width=True):
         st.switch_page("Startseite.py")
 st.divider()
-st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken
+st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken derweil
 
 st.subheader("Optimierer wählen")
-
 c1,c2 = st.columns(2)
 with c1: option = st.selectbox("Optimierungs-Wunschkonzert", ("Eso", "SIMP"))
 with c2: 
@@ -30,8 +30,9 @@ with c2:
     else:
         with c1: st.write("Eigens entwickelter Optimierer, der mit der Nachgiebigkeit der einzelnen Federn arbeitet.")
         with c2:
-            max_iter = st.number_input("Iterationen",  min_value=1, value=10)
-            filter = st.number_input("Filter", min_value = 1.0, value = 1.5)
+            cc1, cc2 = st.columns(2)
+            with cc1: max_iter = st.number_input("Iterationen",  min_value=1, value=10)
+            with cc2: filter = st.radio("Filter", [1, 1.5], horizontal=True, )
 
 struc_orig = st.session_state.get("structure")                      #Structur holen
 optimieren = st.button("Optimierung durchführen", width="stretch")

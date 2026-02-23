@@ -9,7 +9,7 @@ Default = {
     "supports" : {},
     "forces" : {},
     "ui_input_changed" : False,
-    "structure" : None,
+    "structure" : None
 }
 
 def init_session_states():                  #Eigentliches Initialisieren der Session States

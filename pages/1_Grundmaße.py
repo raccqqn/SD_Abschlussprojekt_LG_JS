@@ -14,7 +14,7 @@ with c2:
         st.switch_page("pages/2_Festlager_und_Kräfte.py")
 st.divider()
 st.header("Grundmaße definieren")
-st.subheader("Parameter eingeben und bestätigen")
+st.write("Die gewünschten Paramter eingeben und bestätigen.")
 
 plotter = Plotter()
 

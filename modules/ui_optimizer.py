@@ -19,7 +19,7 @@ def opt_eso(structure, target_vol, agg):
     opt_structure = opt.structure
     return opt_structure
 
-def opt_SIMP(structure, target_vol, MaxIter, Filter):
+def opt_SIMP(structure, target_vol, MaxIter, Filter ):
     opt = OptimizerSIMP(structure)
     opt_structure = opt.optimize(target_vol, MaxIter, Filter)
     
