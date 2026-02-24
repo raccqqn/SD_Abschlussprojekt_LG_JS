@@ -120,15 +120,10 @@ class Plotter:
                     ))
 
         fig.update_layout(
-            legend=dict(
-                orientation="h",       # Horizontal
-                yanchor="bottom", y=1.02, # Über dem Plot platzieren
-                xanchor="right", x=1,
-                bgcolor="rgba(255,255,255,0.5)"
-            ),
+            legend=dict(orientation="h", yanchor="top", y=0.98, xanchor="left", x=0.01),
+            margin=dict(l=0, r=0, t=30, b=0),
             xaxis=dict(scaleanchor="y", showgrid=False, zeroline=False),
             yaxis=dict(autorange="reversed", showgrid=False, zeroline=False),
-            margin=dict(l=0, r=0, t=40, b=0), # Oben etwas Platz für Legende
             plot_bgcolor="rgba(0,0,0,0)"
         )
 
@@ -266,7 +261,7 @@ class Plotter:
             xaxis=dict(scaleanchor="y", showgrid=False, zeroline=False, visible=False),
             yaxis=dict(autorange="reversed", showgrid=False, zeroline=False, visible=False),
             margin=dict(l=0, r=0, t=0, b=0),
-            plot_bgcolor="rgba(0,0,0,0)", # Transparent / Standard
+            plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)"
         )
         

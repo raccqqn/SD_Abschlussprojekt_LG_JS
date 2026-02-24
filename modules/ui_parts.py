@@ -185,7 +185,7 @@ def ui_force_2D():
             st.session_state["forces"][pos] = {"pos" : pos, "vec": f_value}
     
 def ui_force_2d_fun():
-    st.subheader("Kraft bestimmen - schnell, einfach, lustig")
+    st.subheader("Kraftbereich bestimmen")
     st.write("Vertikale Kraftstärke bestimmen und mit dem Regler den Kraftangriffsbereich auf der x-Achse wählen. \
              _Der Angriff passiert immer oben auf der Balkenoberfläche._")
 

@@ -27,6 +27,9 @@ if st.session_state["ui_input_changed"] == True:    #Bei jedem Bestätigen, werd
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA)
 structure = build_object()                          #Struktur wird gebaut, für den Plot
 
+#Working Structure in session_state speichern
+st.session_state["structure"] = structure
+
 placeholder = st.empty()
 
 if st.session_state.depth > 1:                      #Je nachdem ob 2d oder 3d werden andere Plot Verfahren genutzt

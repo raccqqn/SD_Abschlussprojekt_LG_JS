@@ -36,6 +36,22 @@ class Structure:
     def remove_node(self, node_id: Node):
         self.graph.remove_node(node_id)                                     #Verbundene Springs werden mit gelöscht!
 
+    def find_node(self, pos):
+        """
+        Sucht ein Node-Objekt an einer gewünschten Koordinate, gibt Node zurück.
+        Für Aktualisierung der Randbedinungen notwendig.
+        """
+        #Sicherstellen, dass Position als Array geladen wird
+        pos_arr = np.array(pos)
+
+        for _, data in self.graph.nodes(data=True):
+            node = data["node_ref"]
+            #Kleiner Toleranzbereich, keine Fehler bei inkonsequentem Typing
+            if np.allclose(node.pos, pos_arr, atol=1e-5):
+                return node
+        #Wenn Node nicht gefunden werden kann
+        return None
+
     def add_spring(self, node_i: Node, node_j: Node, k, x = 1.0):
         spring = Spring(node_i, node_j, k, x)                                  #Spring Instanz an Knoten i und j erstellen
         self.graph.add_edge(node_i.id, node_j.id, spring=spring)            #Feder zwischen Knoten als Edge hinzufügen, Objekt als Attribut
@@ -54,7 +70,6 @@ class Structure:
     def assemble(self, use_simp=True): # Zusammenbauen
         self.assemble_stiffnes(use_simp)
         self.assemble_force_vector()
-
 
     def fixed_dofs(self):
         fixed_mask = np.zeros(self.ndofs, dtype = bool)                     #Logische Maske für Fixierung
@@ -136,7 +151,35 @@ class Structure:
                 F[dof] += node.F[i]
         
         self.F_global = F
-    
+
+    def update_bnd_cons(self, supports_state, forces_state):
+        """Aktualisiert Lager und Kräfte"""
+
+        #Alle aktuellen Randbedinungen zurücksetzen, so kein Speichern alter Zustände nötig 
+        for _, data in self.graph.nodes(data=True):
+            node = data["node_ref"]
+            #Zurücksetzen, Dimensionsunabhängig
+            node.fixed = [False] * self.dim
+            node.F = np.zeros(self.dim)
+        
+        #Lager neu setzen, an Werte aus session_state anpassen
+        for pos, supports_data in supports_state.items():
+            node = self.find_node(pos)
+            #Kann Node gefunden werden: Mask speichern
+            if node:
+                #Lagerung aus Data auslesen
+                mask = supports_data["mask"]
+                node.fix(mask)
+
+        for pos, force_data in forces_state.items():
+            node = self.find_node(pos)
+            if node:
+                f_vec = force_data["vec"] 
+                node.set_force(f_vec)
+
+        self.assign_dofs()
+        self.assemble()
+
     def is_mechanically_stable(self, node_id) -> bool:
 
         #Fixierte Knoten sind immer stabil
