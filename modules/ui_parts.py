@@ -1,6 +1,88 @@
 import streamlit as st
 from streamlit_elements import elements, mui
 
+from structureManager import StructureManager 
+from datetime import datetime
+
+def ui_storage_sidebar():
+    """Sidebar zum Speichern einer Struktur"""
+    st.sidebar.divider()
+    st.sidebar.subheader("Struktur speichern")
+
+    with st.sidebar.expander("Aktuelle Struktur speichern", expanded=False):
+        manager = StructureManager()        
+        
+        #Existierende Namen für Überschreiben aus Datenbank holen
+        try:
+            existing_saves = [entry["name"] for entry in manager.table.all()]
+        except:
+            existing_saves = []
+
+        if "save_name_input" not in st.session_state:
+            st.session_state["save_name_input"] = f"Projekt_{datetime.now().strftime("%H%M")}"
+
+        #Namensvorschlag updaten
+        def update_save_name():
+            sel = st.session_state.overwrite_select
+            #Wurde Save ausgewählt: Als Namensvorschlag einfügen
+            if sel != "|NEU ERSTELLEN|":
+                st.session_state.save_name_input = sel
+            else:
+                #Falls zurück auf "NEW SAVE" gewechselt wird, Standardvorschlag anzeigen
+                st.session_state.save_name_input = f"Projekt_{datetime.now().strftime("%H%M")}"
+        
+        #Struktur aus Liste auswählen
+        if existing_saves:
+            #on_change: Bei Änderung der Auswahl: Vorschlag über Funktion aktualisieren!
+            selected_existing = st.selectbox("Vorhandene Struktur wählen", 
+                                options=["|NEU ERSTELLEN|"] + existing_saves,
+                                key="overwrite_select", on_change=update_save_name)
+    
+        else:
+            suggested_name = f"Projekt_{datetime.now().strftime("%H%M")}"
+       
+        #Speichername festlegen, Key in Session-State nutzen
+        save_name = st.text_input("Name festlegen", key="save_name_input")
+
+        #Warnung, falls Save schon existiert
+        if save_name in existing_saves:
+            st.warning(f"/{save_name}/ existiert bereits und wird überschrieben.")
+        
+        if st.sidebar.button("Speichern", use_container_width=True, key="save_button_global"):
+            structure = st.session_state.get("structure")
+            
+            if structure is not None:
+                try:
+                    manager.save(save_name, structure)
+                    #Erfolgmeldung, Toast
+                    st.toast(f"{save_name} erfolgreich gespeichert!")
+                except Exception as e:
+                    st.sidebar.error(f"Fehler beim Speichern: {e}")
+            else:
+                st.sidebar.warning("Keine Struktur zum Speichern vorhanden.")
+
+def sync_session_state_with_struc(structure):
+    
+    #UI-Attribute aktualisieren
+    st.session_state["length"] = structure.length
+    st.session_state["width"]  = structure.width
+    st.session_state["depth"]  = structure.depth
+    st.session_state["EA"]     = structure.EA
+    st.session_state["dim"]    = structure.dim
+
+    #UI Input-Felder aktualisieren
+    st.session_state["ui_length"] = structure.length
+    st.session_state["ui_width"]  = structure.width
+    st.session_state["ui_depth"]  = structure.depth
+    st.session_state["ui_EA"]     = structure.EA
+
+    #Lagerungen und Kräfte abrufen, speichern
+    st.session_state["supports"] = structure.get_supports()
+    st.session_state["forces"]   = structure.get_forces()
+
+    #Objekt selbst speichern
+    st.session_state["structure"] = structure
+
 def sync_ui_values():                                       #Session_States eingaben aktualisieren: 
     st.session_state.length = st.session_state.ui_length    #2 unterschiedliche ses-stat, damit im Eingabefeld immer der aktuelle Wert steht.
     st.session_state.width = st.session_state.ui_width

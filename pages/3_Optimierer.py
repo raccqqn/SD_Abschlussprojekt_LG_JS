@@ -1,11 +1,14 @@
 import streamlit as st
 from modules.ui_optimizer import plot_opt
 from modules.state import init_session_states
+from modules.ui_parts import ui_storage_sidebar
 from plots import Plotter
 from optimizerESO import OptimizerESO
 from optimizerSimp import OptimizerSIMP
 import copy
 
+#Speichern der Struktur zu jedem Zeitpunkt möglich
+ui_storage_sidebar()
 init_session_states()   #Notwendig, damit bei einem refresh der page die Daten geladen werden
 plotter = Plotter()
 
@@ -44,7 +47,6 @@ plot_container = st.container()
 info_container = st.container()
 
 if optimieren:
-    #struc_copy = struc_orig                                         #Kopieren der Structur, da die Optimierung die Werte ändert
     #Container vorbereiten
     plot_placeholder = plot_container.empty()
     info_placeholder = info_container.empty()
@@ -81,4 +83,7 @@ if optimieren:
 
             plot_placeholder.plotly_chart(fig, width="stretch", key=f"simp_plot_iter_{it}")
     
-            info_placeholder.write(f"Iter: {it} — compliance: {compliance:.4e} — volume: {volume:.3f}")
+            info_placeholder.write(f"Iter: {it} — compliance: {compliance:.4f} — volume: {volume:.3f}")
+        
+        e_rem, n_rem = struc.cleanup_simp()
+        st.success(f"Bereinigt: {e_rem} Federn und {n_rem} Knoten entfernt.")

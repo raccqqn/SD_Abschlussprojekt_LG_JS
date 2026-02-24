@@ -1,6 +1,8 @@
 import streamlit as st
 from modules.state import init_session_states, init_default_session_states
+from modules.ui_parts import sync_session_state_with_struc
 from structureManager import StructureManager
+from datetime import datetime
 
 st.set_page_config("SWD Abschlussprojekt")
 
@@ -10,11 +12,58 @@ st.image("cover.png") #Vielleicht? Brauch sonst noch besseren Namen
 st.title("SWD Abschlussprojekt", text_alignment="center")
 st.subheader("Joachim Spitaler und Leonie Graf", text_alignment="center")
 
-if st.button("Neue Modellierung starten", use_container_width=True):
+if st.button("Neue Modellierung starten", width="stretch"):
     init_session_states()
     init_default_session_states()
     st.switch_page("pages/1_Grundmaße.py")
 
-st.button("Letzte Berechnung wiederherstellen", use_container_width=True)
-    #FOR THE FUTURE: Hier die Verknüpfung zu JSON, damit alte Daten aufgerufen werden
-    #Dafür Session state aufrufen, der die JSON gespeicherten Daten beinhaltet
+manager = StructureManager()
+
+with st.expander("Vorhandene Modellierung laden"):
+
+    #Alle Einträge aus TinyDB laden
+    all_entries = manager.table.all()
+
+    #Wenn Einträge existieren:
+    if all_entries:
+        #Liste der Namen anzeigen
+        names = [entry["name"] for entry in all_entries]
+        selected_name = st.selectbox("Wähle eine gespeicherte Struktur:", names)
+
+        #Entry auswählen, Metadata der ausgewählten Structure anzeigen
+        selected_entry = next(e for e in all_entries if e["name"] == selected_name)
+
+        #Metadata vorbereiten, Zeit in lesbares Format wandeln
+        date = datetime.fromisoformat(selected_entry["date"])
+        clean_date = date.strftime("%d.%m.%Y, %H:%M")
+        st.caption(f"Datum: {clean_date} | Dimension: {selected_entry["dim"]}D | EA: {selected_entry["EA"]}")
+
+        #Spalten für Laden, Löschen
+        col1, col2 = st.columns([3, 1])
+
+        with col1:
+            #Button zum Bestätigen des Ladens
+            if st.button("Laden bestätigen", width="stretch"):
+                #Ladekreis anzeigen
+                with st.spinner(f"Lade {selected_name}..."):
+                    #Struktur laden
+                    loaded_struct = manager.load(selected_name)
+
+                    #Struktur und alle Attribute in Session State speichern
+                    sync_session_state_with_struc(loaded_struct)
+
+                    st.switch_page("pages/3_Optimierer.py") 
+                    st.toast(f"✅ {selected_name} erfolgreich geladen!")
+
+                    #Trigger setzen
+                    st.session_state["ui_input_changed"] = True  
+
+            with col2:
+                if st.button("Löschen", type="primary", width="stretch"):
+                    manager.delete(selected_name)
+                    st.toast(f"Projekt {selected_name} gelöscht.")
+                    #Neu laden
+                    st.rerun()
+
+
+    else: st.info("Keine gespeicherten Strukturen in der Datenbank gefunden!")

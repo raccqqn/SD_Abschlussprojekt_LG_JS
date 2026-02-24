@@ -13,7 +13,10 @@ class Builder(ABC):
     - Erzeugt anschließend ein Structure-Objekt
     """
 
-    def __init__(self, dim: int, EA: float):
+    def __init__(self, l: int, w: int, d: int, dim: int, EA: float):
+        self.l = l
+        self.w = w
+        self.d = d
         self.dim = dim                  #Dimension kann festgelegt werden, so auch Bauen einer 3D-Struktur möglich
         self.nodes_data = {}            #Dictionary für die Struktur-Daten, {(x,y): {"cords", "force", "fixed"}}
         self.elements = []              #Liste von (pos_i, pos_j)
@@ -31,7 +34,7 @@ class Builder(ABC):
         self.nodes_data[pos]["fixed"] = np.array(mask, dtype=bool)
 
     def build(self):
-        structure = Structure(self.EA, self.dim)
+        structure = Structure(self.l, self.w, self.d, self.EA, self.dim)
 
         node_objects = {}               #Temporäreres Speichern der erstellten Nodes für Erstellung der Springs
         node_id = 0
