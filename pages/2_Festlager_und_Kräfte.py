@@ -1,10 +1,8 @@
 import streamlit as st
 from modules.state import init_session_states, init_remove_input_force_support
-from modules.ui_parts import ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
-from modules.geometry import build_object
+from modules.ui_parts import update_structure, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
+from modules.geometry import build_structure_from_session_states, build_structure_with_support_forces
 from plots import Plotter
-from streamlit_drawable_canvas import st_canvas
-
 
 init_session_states()           #Notwendig, damit bei einem refresh der page die Daten geladen werden
 plotter = Plotter()
@@ -17,10 +15,7 @@ with c2:
     if st.button("Weiter", width="stretch"):
         st.switch_page("pages/3_Optimierer.py")
 st.divider()
-st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Platzhalter Zum Checken derweil
-
-#st_canvas("#351c6d", background_color="#FFFFFF", drawing_mode="rect", key = "canvas" )
-
+st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Platzhalter Zum Checken 
 
 
 st.title("Lager und Kraft auswählen")
@@ -45,7 +40,6 @@ with tab2:
         ui_force_3D_fun()
     else:
         ui_force_2D()
-
         st.divider()
         ui_force_2d_fun()
     
@@ -67,8 +61,9 @@ if "last_config_id" not in st.session_state:
 #Nur speichern, neu plotten falls ein neuer Wert hinzugefügt wurde!
 if current_config_id != st.session_state["last_config_id"]:
 
-    structure = build_object()                      #= Structure()   
-    st.session_state["structure"] = structure       #Speichern für Optimierung auf nächster Seite
+    structure = build_structure_with_support_forces()   #= Structure()
+    #structure = update_structure()   
+    st.session_state["structure"] = structure           #Speichern für Optimierung auf nächster Seite
 
     if st.session_state["depth"] > 1:               #Plotten der Darstellung
         fig = plotter.body_undeformed(structure, True, display=False)

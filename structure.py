@@ -84,7 +84,6 @@ class Structure:
 
             self.K_global = K
 
-
     def assemble_force_vector(self):                                            #Kraftvektor bauen
         F = np.zeros(self.ndofs)
 
@@ -177,3 +176,9 @@ class Structure:
         struct.assign_dofs()
 
         return struct
+    
+    def update_force(self):
+        pass
+
+    def update_fixings(self):
+        pass        
