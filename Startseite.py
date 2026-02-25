@@ -5,14 +5,10 @@ from structureManager import StructureManager
 from datetime import datetime
 
 st.set_page_config("SWD Abschlussprojekt")
-
 init_session_states()
-st.image("cover.png") #Vielleicht? Brauch sonst noch besseren Namen
+st.image("cover.png")
 
-st.title("SWD Abschlussprojekt", text_alignment="center")
-st.subheader("Joachim Spitaler und Leonie Graf", text_alignment="center")
-
-if st.button("Neue Modellierung starten", width="stretch"):
+if st.button("Neue Modellierung starten", width = "stretch"):
     init_session_states()
     init_default_session_states()
     st.switch_page("pages/1_Grundmaße.py")

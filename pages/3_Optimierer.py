@@ -14,33 +14,44 @@ plotter = Plotter()
 
 c1, c2 = st.columns(2)
 with c1: 
-    if st.button("Zurück", use_container_width=True):
+    if st.button("Zurück", width="stretch", disabled=st.session_state["lock_optimization"]):
         st.switch_page("pages/2_Festlager_und_Kräfte.py")
 with c2: 
-    if st.button("Hauptseite", use_container_width=True):
+    if st.button("Hauptseite", width = "stretch"):
         st.switch_page("Startseite.py")
 st.divider()
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken derweil
 
 st.subheader("Optimierer wählen")
 c1,c2 = st.columns(2)
-with c1: option = st.selectbox("Optimierungs-Wunschkonzert", ("Eso", "SIMP"))
+with c1: option = st.selectbox("Optimierungs-Wunschkonzert", ("Eso", "SIMP"), disabled=st.session_state["lock_optimization"])
 with c2: 
-    final_volume = st.slider("Gewünschtes Zielvolumen in %", min_value = 0.0, max_value = 1.0, value = 0.6)
+    final_volume = st.slider("Gewünschtes Zielvolumen in %", min_value = 0.0, max_value = 1.0, value = 0.6, format="percent", disabled=st.session_state["lock_optimization"])
 
     if option == "Eso":
         with c1: st.write("Dieser Optimierer nutzt das Verfahren, was in der Vorlesung vorgschlagen wurde. Es ist abhängig von den Federenergien.")
-        with c2: aggressivity = st.slider("Aggressivität des Entfernens", min_value = 0.0, max_value = 1.0, value = 0.4)
+        with c2: aggressivity = st.slider("Aggressivität des Entfernens", min_value = 0.0, max_value = 1.0, value = 0.4, disabled=st.session_state["lock_optimization"])
         
     else:
         with c1: st.write("Eigens entwickelter Optimierer, der mit der Nachgiebigkeit der einzelnen Federn arbeitet.")
         with c2:
             cc1, cc2 = st.columns(2)
-            with cc1: max_iter = st.number_input("Iterationen",  min_value=1, value=10)
-            with cc2: filter = st.radio("Filter", [1, 1.5], horizontal=True, )
+            with cc1: 
+                max_iter = st.number_input("Iterationen",  min_value=1, value=25, disabled=st.session_state["lock_optimization"])
 
-struc = st.session_state.get("structure")                      #Structur holen
-optimieren = st.button("Optimierung durchführen", width="stretch")
+            with cc2: 
+                #Filter entweder None oder auf Wert gesetzt
+                filter_none = st.segmented_control("Filter", ["Ohne", "Mit"], default="Mit", width="stretch", selection_mode="single", disabled=st.session_state["lock_optimization"])
+                if filter_none == "Ohne":
+                    filter = None
+                else:
+                    filter_input = st.number_input("Wert eingeben", value = 1.5, label_visibility="collapsed", disabled=st.session_state["lock_optimization"])
+                    filter = filter_input
+
+
+struc = st.session_state.get("structure")                           #Structur holen
+optimieren = st.button("Optimierung durchführen", key = "lock_optimization", width="stretch")
+#Nach dem Klick auf Optimierung durchführen werden alle Eingabefelder/Zurückbutton gespeert, um eine Änderung des Models zu verhindern. 
 
 #Container für Plots, so können Plot und Informationen aktualisiert statt neu gezeichnet werden
 plot_container = st.container()         

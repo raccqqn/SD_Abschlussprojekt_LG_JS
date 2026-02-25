@@ -19,10 +19,7 @@ with c2:
     if st.button("Weiter", width="stretch"):
         st.switch_page("pages/3_Optimierer.py")
 st.divider()
-st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Platzhalter Zum Checken derweil
-
-#st_canvas("#351c6d", background_color="#FFFFFF", drawing_mode="rect", key = "canvas" )
-
+st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Platzhalter Zum Checken 
 
 
 st.title("Lager und Kraft auswählen")
@@ -47,7 +44,6 @@ with tab2:
         ui_force_3D_fun()
     else:
         ui_force_2D()
-
         st.divider()
         ui_force_2d_fun()
     
@@ -73,15 +69,9 @@ if "last_config_id" not in st.session_state:
 #Nur speichern, neu plotten falls sich an Konfiguration etwas geändert hat!
 if current_config_id != st.session_state["last_config_id"]:
 
-    #Structure laden
-    structure = st.session_state["structure"]
-    
-    #Lager und Kräfte aus Session-State als Dict laden
-    supports = st.session_state.get("supports", {})
-    forces = st.session_state.get("forces", {})
-
-    #Randbedinungen der Struktur aktualisieren
-    structure.update_bnd_cons(supports, forces)
+    structure = build_structure_with_support_forces()   #= Structure()
+    #structure = update_structure()   
+    st.session_state["structure"] = structure           #Speichern für Optimierung auf nächster Seite
 
     #Aktuellen Zustand plotten
     if st.session_state["depth"] > 1:              

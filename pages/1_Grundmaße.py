@@ -21,18 +21,28 @@ st.write("Die gewünschten Paramter eingeben und bestätigen.")
 plotter = Plotter()
 ui_geometry()
 
-if st.session_state["ui_input_changed"] == True:    #Bei jedem Bestätigen, werden die gespeicherten Kräfte und Lager gelöscht
+if st.session_state["ui_input_changed"] == True:    #Bei jeder Änderung der Geometrie, werden die gespeicherten Kräfte und Lager gelöscht
     init_remove_input_force_support()
 
+if "geometry_loaded" not in st.session_state:
+    st.session_state["geometry_loaded"] = False
+
+st.write(st.session_state.geometry_loaded)
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA)
-structure = build_object()                          #Struktur wird gebaut, für den Plot
+
+structure = build_structure_from_session_states()                          #Struktur wird gebaut, für den Plot
+#update_structure()
+st.session_state["geometry_loaded"] = True                              #Status ändern
+st.session_state["structure"] = structure                               #Struktur in session state speichern
 
 #Working Structure in session_state speichern
 st.session_state["structure"] = structure
 
 placeholder = st.empty()
 
-if st.session_state.depth > 1:                      #Je nachdem ob 2d oder 3d werden andere Plot Verfahren genutzt
+st.write(st.session_state.geometry_loaded)
+
+if st.session_state["depth"] > 1:                      #Je nachdem ob 2d oder 3d werden andere Plot Verfahren genutzt
     fig = plotter.body_undeformed(structure, True, display=False)
 
 else:
