@@ -11,14 +11,6 @@ ui_storage_sidebar()
 init_session_states()                               #Notwendig, damit bei einem refresh der page die Daten geladen werden
 
 
-c1, c2 = st.columns(2)
-with c1: 
-    if st.button("Zurück", width="stretch"):
-        st.switch_page("startseite.py")
-with c2: 
-    if st.button("Weiter", width="stretch"):
-        st.switch_page("pages/2_Festlager_und_Kräfte.py")
-st.divider()
 st.header("Grundmaße definieren")
 st.write(f"Die gewünschten Paramter eingeben und bestätigen. _Ein zu großes 3D Modell lässt sich nicht mehr gut lösen._")
 
@@ -44,3 +36,8 @@ else:
     fig = plotter.beam_undeformed(structure, True, 3, 1, display=False)
 
 placeholder.plotly_chart(fig, width="stretch")
+
+st.divider()
+
+if st.button("Weiter", width="stretch"):
+    st.switch_page("pages/2_Festlager_und_Kräfte.py")

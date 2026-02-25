@@ -6,10 +6,7 @@ from structure import Structure
 from plots import Plotter
 from streamlit_drawable_canvas import st_canvas
 
-#if st.session_state.get("optimization_from_structure", True):
-#    ui_pages_sidebar_from_structure()
-#else:
-#    ui_pages_sidebar()
+import streamlit as st
 
 ui_pages_sidebar()
 #Speichern der Struktur zu jedem Zeitpunkt möglich
@@ -17,25 +14,12 @@ ui_storage_sidebar()
 init_session_states()           #Notwendig, damit bei einem refresh der page die Daten geladen werden
 plotter = Plotter()
 
-c1, c2 = st.columns(2)
-with c1: 
-    if st.button("Zurück", width="stretch"):
-        st.switch_page("pages/1_Grundmaße.py")
-with c2: 
-    if st.button("Weiter", width="stretch"):
-        sup = st.session_state.get("supports", {})
-        forc = st.session_state.get("forces", {})
 
-        if not sup and not forc:
-            st.warning("Bitte Lager und Kräfte bestimmen!")
-        else:
-            st.switch_page("pages/3_Optimierer.py")
-st.divider()
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Platzhalter Zum Checken 
 
 
-st.title("Lager und Kraft auswählen")
-st.write("Die Platzierung der Lager kann frei gewählt werden. Das System wird immer gelöst werden.")
+st.header("Lager und Kraft auswählen")
+st.write("Lager sollten sinnvoll gewählt werden.")
 
 tab1, tab2 = st.tabs(["**Lager**", "**Kraft**"])
 
@@ -103,3 +87,18 @@ if current_config_id != st.session_state["last_config_id"]:
 
     #Neuen Zustand zeichnen
     placeholder.plotly_chart(fig, width="stretch", key="plot_update")
+
+st.divider()
+c1, c2 = st.columns(2)
+with c1: 
+    if st.button("Zurück", width="stretch", disabled=True):
+        st.switch_page("pages/1_Grundmaße.py")
+with c2: 
+    if st.button("Weiter", width="stretch"):
+        sup = st.session_state.get("supports", {})
+        forc = st.session_state.get("forces", {})
+
+        if not sup or not forc:
+            st.warning("Bitte Lager und Kräfte bestimmen!")
+        else:
+            st.switch_page("pages/3_Optimierer.py")

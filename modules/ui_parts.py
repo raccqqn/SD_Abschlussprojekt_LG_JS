@@ -70,17 +70,18 @@ def ui_pages_sidebar():
     Automatischer Sidebar vom /pages Ordner wird deaktiviert und mit einem selber erstellen erstzt.
     Dadurch werden manche Pages je nach Bedingung ausgegraut. 
     """
-    if "lock_optimization" not in st.session_state:
-        st.session_state["lock_optimization"] = False
-        
     with st.sidebar:
-        #st.page_link("Startseite.py", label = "Startseite", width = "stretch")
-        st.page_link("pages/1_Grundmaße.py", label = "Grundmaße", disabled=st.session_state["lock_optimization"])   #Beim Klick auf Optimierung durchführen, kann Geometrie nicht mehr geändert werden
-        st.page_link("pages/2_Festlager_und_Kräfte.py", label = "Lager und Kräfte")
-        st.page_link("pages/3_Optimierer.py", label = "Optimierung")
+        if st.button("Zurück zur Hauptseite", width = "stretch"):
+            st.session_state.clear()
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.switch_page("Startseite.py")
+        st.caption("um eine neue Struktur zu erstellen", text_alignment="center")
+    
 
 def ui_pages_sidebar_from_structure():
     with st.sidebar:
+        
         #st.page_link("Startseite.py", label = "Startseite", width = "stretch", disabled = True)
         st.page_link("pages/1_Grundmaße.py", label = "Grundmaße", disabled=True)   
         st.page_link("pages/2_Festlager_und_Kräfte.py", label = "Lager und Kräfte")

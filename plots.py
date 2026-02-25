@@ -213,7 +213,8 @@ class Plotter:
         - Blau-Weiß Skala (Blau = massiv, Weiß/Hellblau = dünn).
         """
         low_color_str = "rgb(40, 40, 40)"
-        high_color_str = "rgb(59, 130, 246)"
+        high_color_str = "rgb(59, 130, 246)" 
+
 
         # Farbskala: Von Dunkelgrau (niedrig) zu hellem blau (hoch)
         colors = plotly.colors.n_colors(low_color_str, high_color_str, bins, colortype="rgb")
