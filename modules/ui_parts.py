@@ -74,14 +74,14 @@ def ui_pages_sidebar():
         st.session_state["lock_optimization"] = False
         
     with st.sidebar:
-        st.page_link("Startseite.py", label = "Startseite", width = "stretch")
+        #st.page_link("Startseite.py", label = "Startseite", width = "stretch")
         st.page_link("pages/1_Grundmaße.py", label = "Grundmaße", disabled=st.session_state["lock_optimization"])   #Beim Klick auf Optimierung durchführen, kann Geometrie nicht mehr geändert werden
         st.page_link("pages/2_Festlager_und_Kräfte.py", label = "Lager und Kräfte")
         st.page_link("pages/3_Optimierer.py", label = "Optimierung")
 
 def ui_pages_sidebar_from_structure():
     with st.sidebar:
-        st.page_link("Startseite.py", label = "Startseite", width = "stretch", disabled = True)
+        #st.page_link("Startseite.py", label = "Startseite", width = "stretch", disabled = True)
         st.page_link("pages/1_Grundmaße.py", label = "Grundmaße", disabled=True)   
         st.page_link("pages/2_Festlager_und_Kräfte.py", label = "Lager und Kräfte")
         st.page_link("pages/3_Optimierer.py", label = "Optimierung")
@@ -403,11 +403,10 @@ def ui_force_3d_fun_image():
     # Bild anzeigen
     st.image(img, caption=f"Ausgewählter Bereich: x: {start_force_length}-{end_force_length} + y: {start_force_width}-{end_force_width}")
 
-def update_structure():
-    struc = st.session_state.get("structure")
-    pass
-    struc.update_force()
-    struc.update_fixings()
-    struc.assign_dofs()
-    struc.assemble()
-    return struc
+#def update_structure():
+#    struc = st.session_state.get("structure")
+ #   struc.update_force()
+  #  struc.update_fixings()
+   # struc.assign_dofs()
+    #struc.assemble()
+    #return struc

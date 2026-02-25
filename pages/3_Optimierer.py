@@ -1,16 +1,17 @@
 import streamlit as st
-from modules.state import init_session_states
+from modules.state import init_session_states, init_default_session_states
 from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar_from_structure, ui_pages_sidebar
 from modules.ui_result import plot_optimization_results
 from plots import Plotter
 from optimizerESO import OptimizerESO
 from optimizerSimp import OptimizerSIMP
 
-if st.session_state.get("optimization_from_structure", True):
-    ui_pages_sidebar_from_structure()
-else:
-    ui_pages_sidebar()
+#if st.session_state.get("optimization_from_structure", True):
+#    ui_pages_sidebar_from_structure()
+#else:
+#    ui_pages_sidebar()
 
+ui_pages_sidebar()
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
 init_session_states()   #Notwendig, damit bei einem refresh der page die Daten geladen werden
@@ -23,7 +24,11 @@ with c1:
         st.switch_page("pages/2_Festlager_und_Kräfte.py")
 with c2: 
     if st.button("Hauptseite", width = "stretch"):
+        st.session_state.clear()
+        st.cache_data.clear()
+        st.cache_resource.clear()
         st.switch_page("Startseite.py")
+
 st.divider()
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken der Geometrie
 
@@ -52,11 +57,11 @@ with c2:
                 if filter_none == "Ohne":
                     filter_radius = None
                 else:
-                    filter_input = st.number_input("Wert eingeben", value = 1.5, label_visibility="collapsed", disabled=st.session_state["lock_optimization"])
+                    filter_input = st.number_input("Wert eingeben", value = 1.5, key = "filter_input", label_visibility="collapsed", disabled=st.session_state["lock_optimization"])
                     filter_radius = filter_input
             
             with cc3: 
-                threshold_input = st.radio("Clean-Up Intensität", ["Niedrig", "Mittel", "Hoch"] )
+                threshold_input = st.radio("Clean-Up Intensität", ["Niedrig", "Mittel", "Hoch"], disabled=st.session_state["lock_optimization"])
                 if threshold_input == "Niedrig":
                     threshold = 0.01
                 elif threshold_input == "Mittel":
@@ -65,7 +70,7 @@ with c2:
                     threshold = 0.1
 
 struc = st.session_state.get("structure")        #Structur holen
-optimieren = st.button("Optimierung durchführen", key = "lock_optimization", width="stretch")
+optimieren = st.button("Optimierung durchführen", key = "lock_optimization_1", width="stretch")
 #Nach dem Klick auf Optimierung durchführen werden alle Eingabefelder/Zurückbutton gespeert, um eine Änderung des Models zu verhindern. 
 
 #Container für Plots, so können Plot und Informationen aktualisiert statt neu gezeichnet werden
@@ -92,7 +97,7 @@ if optimieren:
             #Individueller Key wird abhängig von Iteration zugewiesen, sonst Plotly-Probleme!
             plot_placeholder.plotly_chart(fig, width="stretch", key=f"eso_plot_iter_{it}")
 
-        st.success(f"Bereinigt: Nach {it} Iterationen noch {remaining} Knoten erhalten.")
+        st.success(f"Bereinigt: Nach {it} Iterationen noch {n_removed} Knoten erhalten.")
 
     else:        
         Opt = OptimizerSIMP(struc)
