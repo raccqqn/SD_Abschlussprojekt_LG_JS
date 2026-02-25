@@ -96,6 +96,7 @@ if st.session_state["lock_optimization"] == True:
             mask = state.get("node_mask")
             vol_frac = state.get("vol_frac")
             n_removed = state.get("n_removed")
+            remaining = state.get("remaining_nodes")
 
             initial_node_ids = Opt.initial_node_ids
             fig = plotter.eso_figure(struc, mask, initial_node_ids, it, n_removed, vol_frac)
