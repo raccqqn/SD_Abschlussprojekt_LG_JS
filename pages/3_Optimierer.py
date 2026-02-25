@@ -85,13 +85,13 @@ if optimieren:
             mask = state.get("node_mask")
             vol_frac = state.get("vol_frac")
             n_removed = state.get("n_removed")
+            remaining = state.get("remaining_nodes")
 
             initial_node_ids = Opt.initial_node_ids
             fig = plotter.eso_figure(struc, mask, initial_node_ids, it, n_removed, vol_frac)
             #Individueller Key wird abhängig von Iteration zugewiesen, sonst Plotly-Probleme!
             plot_placeholder.plotly_chart(fig, width="stretch", key=f"eso_plot_iter_{it}")
 
-        
         st.success(f"Bereinigt: Nach {it} Iterationen noch {remaining} Knoten erhalten.")
 
     else:        

@@ -10,7 +10,9 @@ Default = {
     "forces" : {},
     "ui_input_changed" : False,
     "structure" : None,
-    "lock_optimization" : False
+    "lock_optimization" : False,
+    "optimization_done" : False,
+    "u_final" : None
 }
 
 def init_session_states():                  #Eigentliches Initialisieren der Session States

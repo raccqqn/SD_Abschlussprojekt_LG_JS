@@ -11,7 +11,7 @@ def plot_optimization_results(structure, plotter):
     
     #Solver sicherheitshalber neu ausführen, da vorwiegend Singularitäten bei ESO Verschiebungen verfälschen
     #In session_state speichern
-    if "u_final" not in st.session_state:
+    if st.session_state.get("u_final") is None:
         with st.spinner("Berechne finale Verformung..."):
             solver = Solver(structure)
             st.session_state["u_final"] = solver.solve()
