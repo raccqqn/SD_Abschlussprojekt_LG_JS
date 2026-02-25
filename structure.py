@@ -284,9 +284,3 @@ class Structure:
         struct.assemble()
 
         return struct
-    
-    def update_force(self):
-        pass
-
-    def update_fixings(self):
-        pass        

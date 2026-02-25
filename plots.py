@@ -182,8 +182,15 @@ class Plotter:
                         name=name, showlegend=data["show"]
                     ))
 
+        camera = dict(
+            eye=dict(x=-1.5, y=-1.5, z=1.5),  # Position der Kamera
+            center=dict(x=0, y=0, z=0),       # Worauf die Kamera schaut
+            up=dict(x=0, y=0, z=1)            # Welche Achse "oben" ist
+        )
+
         fig.update_scenes(aspectmode="data")
         fig.update_layout(
+            scene_camera=camera,
             legend=dict(orientation="h", yanchor="top", y=0.98, xanchor="left", x=0.01),
             margin=dict(l=0, r=0, t=30, b=0)
         )

@@ -1,7 +1,7 @@
 import streamlit as st
 from modules.state import init_session_states, init_remove_input_force_support
 from modules.ui_parts import ui_storage_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
-from modules.geometry import build_object
+from modules.geometry import build_structure_from_session_states
 from structure import Structure
 from plots import Plotter
 from streamlit_drawable_canvas import st_canvas
@@ -57,7 +57,7 @@ if "cached_fig" in st.session_state and st.session_state["cached_fig"] is not No
 
 #Sicherstellen, dass Struktur bereits existiert
 if "structure" not in st.session_state:
-    st.session_state["structure"] = build_object()
+    st.session_state["structure"] = build_structure_from_session_states()
 
 #"ID" der aktuellen Kräfte/Lager speichern
 current_config_id = len(st.session_state.get("forces", [])) + len(st.session_state.get("supports", []))
@@ -69,9 +69,15 @@ if "last_config_id" not in st.session_state:
 #Nur speichern, neu plotten falls sich an Konfiguration etwas geändert hat!
 if current_config_id != st.session_state["last_config_id"]:
 
-    structure = build_structure_with_support_forces()   #= Structure()
-    #structure = update_structure()   
-    st.session_state["structure"] = structure           #Speichern für Optimierung auf nächster Seite
+    #Structure laden
+    structure = st.session_state["structure"]
+    
+    #Lager und Kräfte aus Session-State als Dict laden
+    supports = st.session_state.get("supports", {})
+    forces = st.session_state.get("forces", {})
+
+    #Randbedinungen der Struktur aktualisieren
+    structure.update_bnd_cons(supports, forces)
 
     #Aktuellen Zustand plotten
     if st.session_state["depth"] > 1:              

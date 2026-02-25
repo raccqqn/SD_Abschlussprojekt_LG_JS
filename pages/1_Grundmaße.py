@@ -1,7 +1,7 @@
 import streamlit as st
 from modules.state import init_session_states, init_remove_input_force_support
 from modules.ui_parts import ui_storage_sidebar, ui_geometry
-from modules.geometry import build_object
+from modules.geometry import build_structure_from_session_states
 from plots import Plotter
 
 #Speichern der Struktur zu jedem Zeitpunkt möglich
