@@ -1,16 +1,17 @@
 import streamlit as st
-from modules.state import init_session_states
+from modules.state import init_session_states, init_default_session_states
 from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar_from_structure, ui_pages_sidebar
 from modules.ui_result import plot_optimization_results
 from plots import Plotter
 from optimizerESO import OptimizerESO
 from optimizerSimp import OptimizerSIMP
 
-if st.session_state.get("optimization_from_structure", True):
-    ui_pages_sidebar_from_structure()
-else:
-    ui_pages_sidebar()
+#if st.session_state.get("optimization_from_structure", True):
+#    ui_pages_sidebar_from_structure()
+#else:
+#    ui_pages_sidebar()
 
+ui_pages_sidebar()
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
 init_session_states()   #Notwendig, damit bei einem refresh der page die Daten geladen werden
@@ -23,6 +24,9 @@ with c1:
         st.switch_page("pages/2_Festlager_und_Kräfte.py")
 with c2: 
     if st.button("Hauptseite", width = "stretch"):
+        st.session_state.clear()
+        st.cache_data.clear()
+        st.cache_resource.clear()
         st.switch_page("Startseite.py")
 st.divider()
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken der Geometrie
@@ -91,8 +95,7 @@ if optimieren:
             #Individueller Key wird abhängig von Iteration zugewiesen, sonst Plotly-Probleme!
             plot_placeholder.plotly_chart(fig, width="stretch", key=f"eso_plot_iter_{it}")
 
-        
-        st.success(f"Bereinigt: Nach {it} Iterationen noch {remaining} Knoten erhalten.")
+        st.success(f"Bereinigt: Nach {it} Iterationen noch {n_removed} Knoten erhalten.")
 
     else:        
         Opt = OptimizerSIMP(struc)

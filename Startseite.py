@@ -4,6 +4,10 @@ from modules.ui_parts import sync_session_state_with_struc
 from structureManager import StructureManager
 from datetime import datetime
 
+st.session_state.clear()
+st.cache_data.clear()
+st.cache_resource.clear()
+
 st.set_page_config("SWD Abschlussprojekt")
 
 init_session_states()

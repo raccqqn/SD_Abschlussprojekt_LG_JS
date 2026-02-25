@@ -403,11 +403,10 @@ def ui_force_3d_fun_image():
     # Bild anzeigen
     st.image(img, caption=f"Ausgewählter Bereich: x: {start_force_length}-{end_force_length} + y: {start_force_width}-{end_force_width}")
 
-def update_structure():
-    struc = st.session_state.get("structure")
-    pass
-    struc.update_force()
-    struc.update_fixings()
-    struc.assign_dofs()
-    struc.assemble()
-    return struc
+#def update_structure():
+#    struc = st.session_state.get("structure")
+ #   struc.update_force()
+  #  struc.update_fixings()
+   # struc.assign_dofs()
+    #struc.assemble()
+    #return struc

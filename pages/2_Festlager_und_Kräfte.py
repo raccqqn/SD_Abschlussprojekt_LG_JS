@@ -6,11 +6,12 @@ from structure import Structure
 from plots import Plotter
 from streamlit_drawable_canvas import st_canvas
 
-if st.session_state.get("optimization_from_structure", True):
-    ui_pages_sidebar_from_structure()
-else:
-    ui_pages_sidebar()
+#if st.session_state.get("optimization_from_structure", True):
+#    ui_pages_sidebar_from_structure()
+#else:
+#    ui_pages_sidebar()
 
+ui_pages_sidebar()
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
 init_session_states()           #Notwendig, damit bei einem refresh der page die Daten geladen werden
@@ -18,7 +19,7 @@ plotter = Plotter()
 
 c1, c2 = st.columns(2)
 with c1: 
-    if st.button("Zurück", width="stretch", disabled=st.session_state["optimization_from_structure"]):
+    if st.button("Zurück", width="stretch"):
         st.switch_page("pages/1_Grundmaße.py")
 with c2: 
     if st.button("Weiter", width="stretch"):

@@ -8,7 +8,7 @@ from plots import Plotter
 from solver_global import Solver
 import numpy as np
 
-def plot_opt(opt_structure):
+def plot_opt(opt_structure):        #Brauch ma glab gar nicht mehr
     sol = Solver(opt_structure)
     u = sol.solve()
     plotter = Plotter()
