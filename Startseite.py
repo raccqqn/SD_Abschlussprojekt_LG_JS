@@ -20,7 +20,7 @@ if st.button("Neue Modellierung starten", width = "stretch"):
 
 manager = StructureManager()
 
-with st.expander("Vorhandene Modellierung laden"):
+with st.expander("Vorhandene Struktur laden"):
 
     #Alle Einträge aus TinyDB laden
     all_entries = manager.table.all()

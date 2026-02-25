@@ -11,9 +11,7 @@ class OptimizerESO():
 
         self.initial_node_ids = list(self.structure.graph.nodes())
 
-
     def calc_node_energy(self, u):
-        
         node_ids = list(self.structure.graph.nodes())                           
         ids_to_idx = {node_id: i for i, node_id in enumerate(node_ids)}         #Node ID's nummerieren und Index in Dict speichern
         node_energies = np.zeros(len(node_ids))
@@ -62,6 +60,7 @@ class OptimizerESO():
                 not self.structure.is_mechanically_stable(node_id):
                     if self.can_remove(node_id):
                         self.structure.remove_node(node_id)
+                        n_removed += 1
                         changed = True
 
         for _, _, data in self.structure.graph.edges(data=True):
@@ -71,7 +70,10 @@ class OptimizerESO():
         #Freiheitsgrade neu zuweisen
         self.structure.assign_dofs()
         #Struktur neu aufbauen: In diesem Solver wird kein SIMP verwendet, Ko soll neu berechnet werden!                                    
-        self.structure.assemble(use_simp=False)                         
+        self.structure.assemble(use_simp=False) 
+
+        #Wie viele Knoten wurden in dieser Iteration entfernt?
+        return n_removed                        
 
     def can_remove(self, node_id) -> bool:                              #Überprüfen, ob Node entfernt werden kann
 
@@ -94,18 +96,19 @@ class OptimizerESO():
         current_nodes = self.structure.graph.number_of_nodes()
         inital_nodes = self.inital_nodes
 
-        #Maximal 15% der Nodes in einer Iteration entfernen
+        #Maximal 2% der Nodes in einer Iteration entfernen
         max_rem_frac = 0.05
 
         #Fortschritt berechnen
         progress = (inital_nodes - current_nodes) / (inital_nodes - target)
 
         #Minimum: 20% der Maximal-Aggressivität, steigt linear mit Fortschritt an
-        ramp = 0.2 + 0.8 * progress
+        ramp = 0.1 + 0.95 * progress
 
         batch = int(max(1, max_rem_frac * current_nodes * aggressivity * ramp))
 
-        return min(batch, 50)
+        if self.structure.dim > 2: return min(batch,5)
+        return min(batch, 30)
 
     def optimize(self, red_fac, aggressivity):
 
@@ -122,14 +125,14 @@ class OptimizerESO():
             batch_size = self.det_batch_size(target, aggressivity)
 
             print(f"Starting {c}. Iteration...")
-            print(f"Nodes left: {self.structure.ndofs/self.structure.dim}")
+            print(f"Nodes left: {self.structure.graph.number_of_nodes()}")
 
             solver = Solver(self.structure)
 
             u = solver.solve()
             energy = self.calc_node_energy(u)
 
-            self.edit_structure(energy, batch_size)
+            n_removed = self.edit_structure(energy, batch_size)
 
             new_count = self.structure.graph.number_of_nodes()
 
@@ -147,5 +150,7 @@ class OptimizerESO():
                 "iter": c,
                 "node_mask": mask,
                 "energies": energy,
-                "remaining_nodes": new_count
+                "remaining_nodes": new_count,
+                "n_removed": n_removed,
+                "vol_frac": self.structure.graph.number_of_nodes() / self.inital_nodes
             }

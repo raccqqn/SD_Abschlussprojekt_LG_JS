@@ -1,11 +1,10 @@
 import streamlit as st
-from modules.ui_optimizer import plot_opt
 from modules.state import init_session_states
 from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar_from_structure, ui_pages_sidebar
+from modules.ui_result import plot_optimization_results
 from plots import Plotter
 from optimizerESO import OptimizerESO
 from optimizerSimp import OptimizerSIMP
-import copy
 
 if st.session_state.get("optimization_from_structure", True):
     ui_pages_sidebar_from_structure()
@@ -71,12 +70,10 @@ optimieren = st.button("Optimierung durchführen", key = "lock_optimization", wi
 
 #Container für Plots, so können Plot und Informationen aktualisiert statt neu gezeichnet werden
 plot_container = st.container()         
-info_container = st.container()
 
 if optimieren:
     #Container vorbereiten
     plot_placeholder = plot_container.empty()
-    info_placeholder = info_container.empty()
 
     if option == "Eso" :                                            #Somit kann immer wieder auf das Original zurückgewiesen werden
         Opt = OptimizerESO(struc)                                 
@@ -86,14 +83,15 @@ if optimieren:
             #Infomationen aus jedem State aus Dict auslesen
             it = state.get("iter")
             mask = state.get("node_mask")
-            remaining = state.get("remaining_nodes")
+            vol_frac = state.get("vol_frac")
+            n_removed = state.get("n_removed")
 
             initial_node_ids = Opt.initial_node_ids
-            fig = plotter.eso_figure(struc, mask, initial_node_ids)
+            fig = plotter.eso_figure(struc, mask, initial_node_ids, it, n_removed, vol_frac)
             #Individueller Key wird abhängig von Iteration zugewiesen, sonst Plotly-Probleme!
             plot_placeholder.plotly_chart(fig, width="stretch", key=f"eso_plot_iter_{it}")
 
-            info_placeholder.write(f"Iter: {it} — remaining nodes: {remaining}")
+        
         st.success(f"Bereinigt: Nach {it} Iterationen noch {remaining} Knoten erhalten.")
 
     else:        
@@ -105,13 +103,20 @@ if optimieren:
             it = yield_dict.get("iter")
             x_vals = yield_dict.get("x")
             compliance = yield_dict.get("compliance")
-            volume = yield_dict.get("volume")
+            vol_frac = yield_dict.get("frac")
 
-            fig = plotter.simp_figure(struc, x_vals)
+            fig = plotter.simp_figure(struc, x_vals, it, compliance, vol_frac)
 
             plot_placeholder.plotly_chart(fig, width="stretch", key=f"simp_plot_iter_{it}")
-    
-            info_placeholder.write(f"Iter: {it} — compliance: {compliance:.4f} — volume: {volume:.3f}")
+
         
         e_rem, n_rem = struc.cleanup_simp(threshold)
         st.success(f"Bereinigt: {e_rem} Federn und {n_rem} Knoten entfernt.")
+    
+    #Nach Optimerung: Trigger setzen, Seite neu laden
+    st.session_state["optimization_done"] = True
+    st.rerun()
+
+#Nach abgeschlossener Optimierung: Ergebnisse darstellen, Logik in Module ausgelagert 
+if st.session_state.get("optimization_done"):
+    plot_optimization_results(struc, plotter)
