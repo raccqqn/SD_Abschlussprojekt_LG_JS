@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 from solver_global import Solver
 
+
 def plot_optimization_results(structure, plotter):
     """
     Finale Visualisierung auslagern

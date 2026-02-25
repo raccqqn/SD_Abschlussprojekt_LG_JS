@@ -1,5 +1,5 @@
 import streamlit as st
-from modules.state import init_session_states, init_remove_input_force_support
+from modules.state import init_session_states, init_remove_input_force_support, init_default_session_states
 from modules.ui_parts import ui_storage_sidebar, ui_geometry, ui_pages_sidebar
 from modules.geometry import build_structure_from_session_states
 from plots import Plotter
@@ -20,7 +20,7 @@ with c2:
         st.switch_page("pages/2_Festlager_und_Kräfte.py")
 st.divider()
 st.header("Grundmaße definieren")
-st.write("Die gewünschten Paramter eingeben und bestätigen.")
+st.write(f"Die gewünschten Paramter eingeben und bestätigen. _Ein zu großes 3D Modell lässt sich nicht mehr gut lösen._")
 
 plotter = Plotter()
 ui_geometry()

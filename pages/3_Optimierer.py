@@ -28,6 +28,7 @@ with c2:
         st.cache_data.clear()
         st.cache_resource.clear()
         st.switch_page("Startseite.py")
+
 st.divider()
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken der Geometrie
 
@@ -56,11 +57,11 @@ with c2:
                 if filter_none == "Ohne":
                     filter_radius = None
                 else:
-                    filter_input = st.number_input("Wert eingeben", value = 1.5, label_visibility="collapsed", disabled=st.session_state["lock_optimization"])
+                    filter_input = st.number_input("Wert eingeben", value = 1.5, key = "filter_input", label_visibility="collapsed", disabled=st.session_state["lock_optimization"])
                     filter_radius = filter_input
             
             with cc3: 
-                threshold_input = st.radio("Clean-Up Intensität", ["Niedrig", "Mittel", "Hoch"] )
+                threshold_input = st.radio("Clean-Up Intensität", ["Niedrig", "Mittel", "Hoch"], disabled=st.session_state["lock_optimization"])
                 if threshold_input == "Niedrig":
                     threshold = 0.01
                 elif threshold_input == "Mittel":
@@ -69,7 +70,7 @@ with c2:
                     threshold = 0.1
 
 struc = st.session_state.get("structure")        #Structur holen
-optimieren = st.button("Optimierung durchführen", key = "lock_optimization", width="stretch")
+optimieren = st.button("Optimierung durchführen", key = "lock_optimization_1", width="stretch")
 #Nach dem Klick auf Optimierung durchführen werden alle Eingabefelder/Zurückbutton gespeert, um eine Änderung des Models zu verhindern. 
 
 #Container für Plots, so können Plot und Informationen aktualisiert statt neu gezeichnet werden

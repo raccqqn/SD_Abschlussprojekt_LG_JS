@@ -71,6 +71,5 @@ with st.expander("Vorhandene Struktur laden"):
                     st.toast(f"Projekt {selected_name} gelöscht.")
                     #Neu laden
                     st.rerun()
-
-
+                    
     else: st.info("Keine gespeicherten Strukturen in der Datenbank gefunden!")

@@ -23,7 +23,13 @@ with c1:
         st.switch_page("pages/1_Grundmaße.py")
 with c2: 
     if st.button("Weiter", width="stretch"):
-        st.switch_page("pages/3_Optimierer.py")
+        sup = st.session_state.get("supports", {})
+        forc = st.session_state.get("forces", {})
+
+        if not sup and not forc:
+            st.warning("Bitte Lager und Kräfte bestimmen!")
+        else:
+            st.switch_page("pages/3_Optimierer.py")
 st.divider()
 st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Platzhalter Zum Checken 
 
