@@ -6,10 +6,16 @@ from spring import Spring
 
 class Structure:
 
-    def __init__(self, EA: float, dim: int):
+    def __init__(self, length: int, width: int, depth: int, EA: float, dim: int):
+        self.graph = nx.Graph()                 # Dimensionslosen Graph erstellen
+
+        #Geometrie auch in Struktur speichern
+        self.length = length
+        self.width = width
+        self.depth = depth        
         self.EA = EA
         self.dim = dim                          # Dimension übergeben
-        self.graph = nx.Graph()                 # Dimensionslosen Graph erstellen
+        
         self.ndofs = None                       # Gesamtanzahl Freiheitsgrade
         self.K_global = None
         self.F_global = None                    # Globaler Lastvektor
@@ -30,6 +36,22 @@ class Structure:
     def remove_node(self, node_id: Node):
         self.graph.remove_node(node_id)                                     #Verbundene Springs werden mit gelöscht!
 
+    def find_node(self, pos):
+        """
+        Sucht ein Node-Objekt an einer gewünschten Koordinate, gibt Node zurück.
+        Für Aktualisierung der Randbedinungen notwendig.
+        """
+        #Sicherstellen, dass Position als Array geladen wird
+        pos_arr = np.array(pos)
+
+        for _, data in self.graph.nodes(data=True):
+            node = data["node_ref"]
+            #Kleiner Toleranzbereich, keine Fehler bei inkonsequentem Typing
+            if np.allclose(node.pos, pos_arr, atol=1e-5):
+                return node
+        #Wenn Node nicht gefunden werden kann
+        return None
+
     def add_spring(self, node_i: Node, node_j: Node, k, x = 1.0):
         spring = Spring(node_i, node_j, k, x)                                  #Spring Instanz an Knoten i und j erstellen
         self.graph.add_edge(node_i.id, node_j.id, spring=spring)            #Feder zwischen Knoten als Edge hinzufügen, Objekt als Attribut
@@ -49,7 +71,6 @@ class Structure:
         self.assemble_stiffnes(use_simp)
         self.assemble_force_vector()
 
-
     def fixed_dofs(self):
         fixed_mask = np.zeros(self.ndofs, dtype = bool)                     #Logische Maske für Fixierung
 
@@ -65,6 +86,42 @@ class Structure:
         node = self.graph.nodes[node_id]["node_ref"]                        #Node aus Graph bestimmen, speichern
         fixed = np.any(node.fixed)                                          #Ein Element aus Dictionary true?
         return fixed
+    
+    def get_supports(self):
+        """Extrahiert alle Lager als Dict, so können sie in UI geladen und angezeigt werden"""
+        supports = {}
+        for node_id, data in self.graph.nodes(data=True):
+            node = data["node_ref"]
+            #Fixiert? in Dict speichern
+            if np.any(node.fixed):
+                #Position als Tuple als Key nutzen, so mit UI kompatibel
+                #Explizit als Integer speichern, sonst label in UI!
+                pos_tuple = tuple(int(round(c)) for c in node.pos)
+                supports[pos_tuple] = {
+                    "pos": pos_tuple,
+                    "mask": node.fixed.tolist()
+                }
+        return supports
+    
+    def has_force(self, node_id):
+        node = self.graph.nodes[node_id]["node_ref"]
+        return not np.allclose(node.F, 0)                                       #True, wenn Kraft nicht nahe an 0 ist 
+
+    def get_forces(self):
+        """Extrahiert alle Kräfte als Dict, so können sie in UI geladen und angezeigt werden"""
+        forces = {}
+        for node_id, data in self.graph.nodes(data=True):
+            node = data["node_ref"]
+            #Kraft nicht nahe 0? in Dict speichern
+            if not np.allclose(node.F, 0):
+                #Position als Tuple als Key nutzen, so mit UI kompatibel
+                #Explizit als Integer speichern, sonst label in UI!
+                pos_tuple = tuple(int(round(c)) for c in node.pos)
+                forces[pos_tuple] = {
+                    "pos": pos_tuple,
+                    "vec": node.F.tolist()
+                }
+        return forces
 
     def assemble_stiffnes(self, use_simp=True):
         K = np.zeros((self.ndofs, self.ndofs))
@@ -94,10 +151,34 @@ class Structure:
         
         self.F_global = F
 
-    def has_force(self, node_id):
-        node = self.graph.nodes[node_id]["node_ref"]
-        return not np.allclose(node.F, 0)                                       #True, wenn Kraft nicht nahe an 0 ist 
-    
+    def update_bnd_cons(self, supports_state, forces_state):
+        """Aktualisiert Lager und Kräfte"""
+
+        #Alle aktuellen Randbedinungen zurücksetzen, so kein Speichern alter Zustände nötig 
+        for _, data in self.graph.nodes(data=True):
+            node = data["node_ref"]
+            #Zurücksetzen, Dimensionsunabhängig
+            node.fixed = [False] * self.dim
+            node.F = np.zeros(self.dim)
+        
+        #Lager neu setzen, an Werte aus session_state anpassen
+        for pos, supports_data in supports_state.items():
+            node = self.find_node(pos)
+            #Kann Node gefunden werden: Mask speichern
+            if node:
+                #Lagerung aus Data auslesen
+                mask = supports_data["mask"]
+                node.fix(mask)
+
+        for pos, force_data in forces_state.items():
+            node = self.find_node(pos)
+            if node:
+                f_vec = force_data["vec"] 
+                node.set_force(f_vec)
+
+        self.assign_dofs()
+        self.assemble()
+
     def is_mechanically_stable(self, node_id) -> bool:
 
         #Fixierte Knoten sind immer stabil
@@ -136,14 +217,39 @@ class Structure:
 
         return rank >= self.dim
     
+    def cleanup_simp(self, threshhold=0.05):
+        """Entfernt unwichtige Federn und Knoten entsprechend der jeweiligen x-Werte"""
+        
+        #Als Array speichern, so können Edges später über eine Zeile entfernt werden
+        edges_to_remove = []
+        for i_id, j_id, data in self.graph.edges(data=True):
+            if data["spring"].x < threshhold:
+                edges_to_remove.append((i_id, j_id))
+        #Edges entfernen 
+        self.graph.remove_edges_from(edges_to_remove)
+
+        #2. Schritt: Frei hängende Knoten entfernen
+        nodes_to_remove = []
+        for node_id, data in self.graph.nodes(data=True):
+            #0 Verbindungen? Knoten zu Liste hinzufügen
+            if self.graph.degree(node_id) == 0:
+                nodes_to_remove.append(node_id)
+        self.graph.remove_nodes_from(nodes_to_remove)
+
+        #Freiheitsgrade neu zuweisen, Steifigkeit und Kraft neu aufstellen
+        self.assign_dofs()
+        self.assemble()
+
+        return len(edges_to_remove), len(nodes_to_remove)
+    
 
     #Statisch, da Funktion unabhängig von self funktionieren soll aber rein logisch hier hin gehört
     @staticmethod
-    def build_from_data(data, EA, dim):
+    def build_from_data(data, l, w, d, EA, dim):
         """Erzeugt eine Structure-Instanz aus gespeicherten Rohdaten"""
 
         #Neue Instanz erstellen
-        struct = Structure(EA, dim)
+        struct = Structure(l, w, d, EA, dim)
         #Informationen über Nodes in Dict speichern
         nodes_dict = {}
 
@@ -174,6 +280,8 @@ class Structure:
 
         #Freiheitsgrade zuweisen
         struct.assign_dofs()
+        #Steifigkeit und Kraftvektor aufstellen
+        struct.assemble()
 
         return struct
     

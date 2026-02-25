@@ -5,15 +5,13 @@ from builder import Builder
 
 class BeamBuilder2D(Builder):
     def __init__(self, length, width, EA):
-        super().__init__(dim=2, EA=EA)                             #Dimension hier immer 2
-        
-        self.length = length
-        self.width = width                             
+        super().__init__(l=length, w=width, d=1, dim=2, EA=EA)                             #Dimension hier immer 2
+                            
 
     def create_geometry(self):
 
-        for y in range(self.width):
-            for x in range(self.length):
+        for y in range(self.w):
+            for x in range(self.l):
 
                 pos = (x,y)
 

@@ -7,7 +7,7 @@ class Node:
     """
     def __init__(self, id, pos):
         self.id = id
-        self.pos = np.array(pos, dtype=float)
+        self.pos = np.array(pos, dtype=int)
 
         self.F = None                                       #Belastung und Randbedinungen werden in Struktur festgelegt, nicht an Node
         self.fixed = None                                   #Node in x, y oder z Richtung fixiert?

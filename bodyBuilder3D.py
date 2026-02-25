@@ -5,12 +5,8 @@ from builder import Builder
 
 class BodyBuilder3D(Builder):
     def __init__(self, length, width, depth, EA):
-        super().__init__(dim=3, EA=EA)                             #Dimension hier immer 3
+        super().__init__(l=length, w=width, d=depth, dim=3, EA=EA)                             #Dimension hier immer 3
         
-        self.length = length
-        self.width = width 
-        self.depth = depth    
-
         self._elements = set()          #Menge, die doppelte Einträge verhindert
 
     def _add(self, a, b):
@@ -23,9 +19,9 @@ class BodyBuilder3D(Builder):
         self.nodes_data = {}
         self._elements = set()
 
-        for z in range(self.depth):
-            for y in range(self.width):
-                for x in range(self.length):
+        for z in range(self.d):
+            for y in range(self.w):
+                for x in range(self.l):
                     pos = (x,y,z)
 
                     self.nodes_data[pos] = {                  #Node-Daten für gewünschte Struktur speichern

@@ -71,6 +71,11 @@ class StructureManager():
         entry = {
             "name": name,
             "file": file_name,
+            "dims": {
+                "l": structure.length,
+                "w": structure.width,
+                "d": structure.depth
+             },
             "EA": structure.EA,
             "dim": structure.dim,
             "n_nodes": len(node_ids),
@@ -95,8 +100,24 @@ class StructureManager():
         file_path = os.path.join(self.data_dir, entry["file"])
         data = np.load(file_path)
 
+        #Abmessungen laden
+        dims = entry.get("dims", {})
+        #Standardwerte als Fallback
+        l = dims.get("l", 100)
+        w = dims.get("w", 20)
+        d = dims.get("d", 1)
+
         #Struktur neu aufbauen
-        structure = Structure.build_from_data(data, entry["EA"], entry["dim"])
+        structure = Structure.build_from_data(data, l, w, d, entry["EA"], entry["dim"])
 
         print(f"Struktur {name} erfolgreich geladen.")
         return structure
+    
+    def delete(self, name):
+        #Tabelle löschen
+        self.table.remove(Query().name == name)
+        #Zugehörige NPZ-Datei löschen
+        file_path = os.path.join(self.data_dir, f"{name}.npz")
+        #Wenn existiert: Löschen
+        if os.path.exists(file_path):
+                    os.remove(file_path)

@@ -1,9 +1,13 @@
 import streamlit as st
 from modules.state import init_session_states, init_remove_input_force_support
-from modules.ui_parts import update_structure, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
-from modules.geometry import build_structure_from_session_states, build_structure_with_support_forces
+from modules.ui_parts import ui_storage_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
+from modules.geometry import build_object
+from structure import Structure
 from plots import Plotter
+from streamlit_drawable_canvas import st_canvas
 
+#Speichern der Struktur zu jedem Zeitpunkt möglich
+ui_storage_sidebar()
 init_session_states()           #Notwendig, damit bei einem refresh der page die Daten geladen werden
 plotter = Plotter()
 
@@ -51,6 +55,10 @@ placeholder = st.empty()
 if "cached_fig" in st.session_state and st.session_state["cached_fig"] is not None:
     placeholder.plotly_chart(st.session_state["cached_fig"], width="stretch", key="plot_static")
 
+#Sicherstellen, dass Struktur bereits existiert
+if "structure" not in st.session_state:
+    st.session_state["structure"] = build_object()
+
 #"ID" der aktuellen Kräfte/Lager speichern
 current_config_id = len(st.session_state.get("forces", [])) + len(st.session_state.get("supports", []))
 
@@ -58,18 +66,19 @@ current_config_id = len(st.session_state.get("forces", [])) + len(st.session_sta
 if "last_config_id" not in st.session_state:
     st.session_state["last_config_id"] = None
 
-#Nur speichern, neu plotten falls ein neuer Wert hinzugefügt wurde!
+#Nur speichern, neu plotten falls sich an Konfiguration etwas geändert hat!
 if current_config_id != st.session_state["last_config_id"]:
 
     structure = build_structure_with_support_forces()   #= Structure()
     #structure = update_structure()   
     st.session_state["structure"] = structure           #Speichern für Optimierung auf nächster Seite
 
-    if st.session_state["depth"] > 1:               #Plotten der Darstellung
+    #Aktuellen Zustand plotten
+    if st.session_state["depth"] > 1:              
         fig = plotter.body_undeformed(structure, True, display=False)
 
     else:
-        fig = plotter.beam_undeformed(structure, True, 2, 1, display=False)
+        fig = plotter.beam_undeformed(structure, node_size=2, display=False)
 
     st.session_state["cached_fig"] = fig
     st.session_state["last_config_id"] = current_config_id

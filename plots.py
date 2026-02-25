@@ -65,175 +65,206 @@ class Plotter:
     # Backwards-compatible 2D / 3D "undeformed" display
     # signature kept similar to old API
     # ---------------------------
-    def beam_undeformed(self, beam, show_nodes=True, node_size=4, linewidth=1, supports=None,
-                        display=True, placeholder=None, color_bins=20):
-        """
-        Zeichnet die (undeformed) 2D-Struktur.
-        - returns fig (and optionally calls placeholder.plotly_chart)
-        - supports: dict of { (x,y): {...}} optional, drawn as red markers
-        """
-        # build single-line arrays
+    def beam_undeformed(self, beam, show_nodes=True, node_size=4, linewidth=1, 
+                        display=True, placeholder=None):
+        
         x_lines, y_lines, _ = self._edges_to_lines_2d(beam)
-
         fig = go.Figure()
+
+        # Struktur-Linien
         fig.add_trace(go.Scattergl(
             x=x_lines, y=y_lines, mode="lines",
             line=dict(width=linewidth, color="#444444"),
-            hoverinfo="skip"
+            hoverinfo="skip",
+            showlegend=False
         ))
 
         if show_nodes:
-            x_nodes, y_nodes = [], []
+            #Dictionary für die verschiedenen Kategorien mit Klarnamen für die Legende
+            node_groups = {
+                "Knoten":        {"x": [], "y": [], "color": "#1f77b4", "symbol": "circle", "size": node_size},
+                "Kraftangriff":  {"x": [], "y": [], "color": "red",     "symbol": "circle", "size": node_size + 3},
+                "Festlager (XY)":{"x": [], "y": [], "color": "green", "symbol": "square", "size": node_size + 6},
+                "Loslager (X)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-up", "size": node_size + 9},
+                "Loslager (Y)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-down", "size": node_size + 9},
+            }
+
             for _, ndata in beam.graph.nodes(data=True):
                 node = ndata["node_ref"]
-                x_nodes.append(node.pos[0])
-                y_nodes.append(node.pos[1])
-            fig.add_trace(go.Scattergl(
-                x=x_nodes, y=y_nodes, mode="markers",
-                marker=dict(size=node_size, color="#1f77b4"),
-                hoverinfo="skip"
-            ))
+                x, y = node.pos[0], node.pos[1]
+                f = node.fixed # [bool, bool]
+                
+                if f[0] and f[1]:
+                    key = "Festlager (XY)"
+                elif f[0]:
+                    key = "Loslager (X)"
+                elif f[1]:
+                    key = "Loslager (Y)"
+                elif np.any(node.F != 0):
+                    key = "Kraftangriff"
+                else:
+                    key = "Knoten"
+                
+                node_groups[key]["x"].append(x)
+                node_groups[key]["y"].append(y)
 
-        if supports:
-            xs, ys = [], []
-            for pos, _ in (supports.items() if isinstance(supports, dict) else []):
-                xs.append(pos[0]); ys.append(pos[1])
-            if xs:
-                fig.add_trace(go.Scattergl(
-                    x=xs, y=ys, mode="markers",
-                    marker=dict(size=8, color="red"),
-                    hoverinfo="skip"
-                ))
+            for name, data in node_groups.items():
+                if data["x"]:
+                    is_standard_node = (name == "Knoten")
+
+                    fig.add_trace(go.Scattergl(
+                        x=data["x"], y=data["y"], mode="markers",
+                        marker=dict(size=data["size"], color=data["color"], symbol=data["symbol"]),
+                        name=name,
+                        showlegend=not is_standard_node
+                    ))
 
         fig.update_layout(
-            showlegend=False,
-            xaxis=dict(scaleanchor="y"),
-            yaxis=dict(autorange="reversed"),
-            margin=dict(l=0, r=0, t=20, b=0)
+            legend=dict(orientation="h", yanchor="top", y=0.98, xanchor="left", x=0.01),
+            margin=dict(l=0, r=0, t=30, b=0),
+            xaxis=dict(scaleanchor="y", showgrid=False, zeroline=False),
+            yaxis=dict(autorange="reversed", showgrid=False, zeroline=False),
+            plot_bgcolor="rgba(0,0,0,0)"
         )
 
         if display:
-            if placeholder is None:
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                placeholder.plotly_chart(fig, use_container_width=True)
+            target = placeholder if placeholder else st
+            target.plotly_chart(fig, use_container_width=True)
+            
         return fig
 
     def body_undeformed(self, body, show_nodes=True, node_size=3, linewidth=2,
                         display=True, placeholder=None):
+        """ Zeichnet die 3D-Struktur mit farbigen Markern für Lager (Grün) und Kräfte (Rot). """
+        
         x_lines, y_lines, z_lines, _ = self._edges_to_lines_3d(body)
-
         fig = go.Figure()
+
+        # Struktur-Linien (Gittermodell)
         fig.add_trace(go.Scatter3d(
             x=x_lines, y=y_lines, z=z_lines, mode="lines",
             line=dict(width=linewidth, color="#444444"),
-            hoverinfo="skip"
+            hoverinfo="skip", showlegend=False
         ))
-        fig.update_scenes(aspectmode="data")
 
         if show_nodes:
-            x_nodes, y_nodes, z_nodes = [], [], []
+            # Gruppen-Definition (Name: [Farbe, Größe, Legende_Anzeigen])
+            groups = {
+                "Knoten":        {"pos": [], "color": "#1f77b4", "size": node_size,     "show": False},
+                "Kraftangriff":  {"pos": [], "color": "red",     "size": node_size + 2, "show": True},
+                "Festlager (XYZ)":{"pos": [], "color": "green", "size": node_size + 4, "show": True},
+                "Loslager":{"pos": [], "color": "yellow", "size": node_size + 3, "show": True},
+            }
+
             for _, ndata in body.graph.nodes(data=True):
                 node = ndata["node_ref"]
-                x_nodes.append(node.pos[0]); y_nodes.append(node.pos[1]); z_nodes.append(node.pos[2])
-            fig.add_trace(go.Scatter3d(
-                x=x_nodes, y=y_nodes, z=z_nodes, mode="markers",
-                marker=dict(size=node_size, color="#1f77b4"),
-                hoverinfo="skip"
-            ))
+                f = node.fixed # Erwartet [bool, bool, bool]
+                
+                # Kategorisierung für 3D
+                if all(f[:3]):
+                    key = "Festlager (XYZ)"
+                elif any(f[:3]):
+                    key = "Loslager"
+                elif np.any(node.F != 0):
+                    key = "Kraftangriff"
+                else:
+                    key = "Knoten"
+                
+                groups[key]["pos"].append(node.pos)
 
-        fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=20, b=0))
+            # Traces hinzufügen
+            for name, data in groups.items():
+                if data["pos"]:
+                    pts = np.array(data["pos"])
+                    fig.add_trace(go.Scatter3d(
+                        x=pts[:,0], y=pts[:,1], z=pts[:,2], mode="markers",
+                        marker=dict(size=data["size"], color=data["color"], opacity=0.9),
+                        name=name, showlegend=data["show"]
+                    ))
+
+        fig.update_scenes(aspectmode="data")
+        fig.update_layout(
+            legend=dict(orientation="h", yanchor="top", y=0.98, xanchor="left", x=0.01),
+            margin=dict(l=0, r=0, t=30, b=0)
+        )
+
         if display:
-            if placeholder is None:
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                placeholder.plotly_chart(fig, use_container_width=True)
+            target = placeholder if placeholder else st
+            target.plotly_chart(fig, use_container_width=True)
+            
         return fig
 
     # ---------------------------
     # SIMP: Farbliche Darstellung nach x_vals
     # - wir gruppieren Edges in 'bins' um nicht 5000 traces zu erzeugen
     # ---------------------------
-    def simp_figure_2d(self, structure, x_vals, bins=20, node_markers=True, node_size=3, scale=1.0):
+    def simp_figure_2d(self, structure, x_vals, bins=15, node_markers=True, node_size=2):
         """
-        Erzeugt eine Figure, die Kanten nach x_vals einfärbt.
-        x_vals must be an iterable of length == number of edges (ordered the same way edges are enumerated).
-        We render 'bins' traces (one per color bucket) for performance.
+        SIMP Visualisierung: 
+        - Nur Federn mit x >= 0.01 werden gezeichnet.
+        - Nur Knoten, die noch aktive Federn haben, werden gezeichnet.
+        - Blau-Weiß Skala (Blau = massiv, Weiß/Hellblau = dünn).
         """
-        # collect edge endpoints and x per edge in deterministic order
-        edges = []
-        for idx, (i_id, j_id, data) in enumerate(structure.graph.edges(data=True)):
-            spring = data["spring"]
-            xi, yi = spring.i.pos[0], spring.i.pos[1]
-            xj, yj = spring.j.pos[0], spring.j.pos[1]
-            xval = float(x_vals[idx]) if idx < len(x_vals) else 0.0
-            edges.append((idx, xi, yi, xj, yj, xval))
-
-        # bin edges by xval
+        import plotly.express as px
+        
+        # Farbskala: Von Hellblau (niedrig) zu Dunkelblau (hoch)
+        colors = px.colors.sample_colorscale("Blues", [i/(bins-1) for i in range(bins)])
+        
         xs_bins = [[] for _ in range(bins)]
         ys_bins = [[] for _ in range(bins)]
-        xvals_array = np.array([e[5] for e in edges])
-        if xvals_array.max() == xvals_array.min():
-            # avoid zero-range
-            edges_bins_edges = np.zeros_like(xvals_array, dtype=int)
-        else:
-            range_val = np.ptp(xvals_array)
-            if range_val == 0:
-                edges_bins_edges = np.zeros_like(xvals_array, dtype=int)
-            else:
-                edges_bins_edges = np.floor(
-                    (xvals_array - xvals_array.min()) /
-                    (range_val / bins)
-                ).astype(int)
-
-            edges_bins_edges = np.clip(edges_bins_edges, 0, bins - 1)
-
-        for e, bin_idx in zip(edges, edges_bins_edges):
-            _, xi, yi, xj, yj, _ = e
-            xs_bins[bin_idx] += [xi, xj, None]
-            ys_bins[bin_idx] += [yi, yj, None]
-
-        # choose colors from palette (sample evenly)
-        palette = self.palette
-        # ensure we have at least 'bins' colors
-        if len(palette) < bins:
-            # repeat palette
-            palette = (palette * (bins // len(palette) + 1))[:bins]
-        else:
-            # sample evenly
-            stride = max(1, len(palette) // bins)
-            palette = [palette[i * stride] for i in range(bins)]
+        active_node_ids = set() # Zum Tracking der Knoten mit "Material"
+        
+        # 1. Federn filtern und binnig
+        for idx, (i_id, j_id, data) in enumerate(structure.graph.edges(data=True)):
+            x_val = float(x_vals[idx]) if idx < len(x_vals) else 0.0
+            
+            if x_val < 0.01:
+                continue
+                
+            b_idx = int(min(x_val * bins, bins - 1))
+            node_i, node_j = data["spring"].i, data["spring"].j
+            
+            # Koordinaten für Linien
+            xs_bins[b_idx] += [node_i.pos[0], node_j.pos[0], None]
+            ys_bins[b_idx] += [node_i.pos[1], node_j.pos[1], None]
+            
+            # Knoten als "aktiv" markieren
+            active_node_ids.add(i_id)
+            active_node_ids.add(j_id)
 
         fig = go.Figure()
-        for k in range(bins):
-            if not xs_bins[k]:
-                continue
-            fig.add_trace(go.Scattergl(
-                x=xs_bins[k], y=ys_bins[k], mode="lines",
-                line=dict(width=1.5, color=palette[k]),
-                hoverinfo="skip",
-                name=f"bin_{k}"
-            ))
 
-        # nodes on top
+        # 2. Aktive Federn plotten
+        for k in range(bins):
+            if xs_bins[k]:
+                fig.add_trace(go.Scattergl(
+                    x=xs_bins[k], y=ys_bins[k], mode="lines",
+                    line=dict(width=1.8, color=colors[k]),
+                    hoverinfo="skip", showlegend=False
+                ))
+
+        # 3. Nur aktive Knoten plotten
         if node_markers:
-            x_nodes, y_nodes = [], []
-            for _, ndata in structure.graph.nodes(data=True):
-                node = ndata["node_ref"]
-                x_nodes.append(node.pos[0]); y_nodes.append(node.pos[1])
+            x_n, y_n = [], []
+            for n_id, ndata in structure.graph.nodes(data=True):
+                if n_id in active_node_ids:
+                    node = ndata["node_ref"]
+                    x_n.append(node.pos[0]); y_n.append(node.pos[1])
+                
             fig.add_trace(go.Scattergl(
-                x=x_nodes, y=y_nodes, mode="markers",
-                marker=dict(size=node_size, color="#1f77b4"),
-                hoverinfo="skip", name="nodes"
+                x=x_n, y=y_n, mode="markers",
+                marker=dict(size=node_size, color="#555555", opacity=0.5),
+                hoverinfo="skip", showlegend=False
             ))
 
         fig.update_layout(
-            showlegend=False,
-            xaxis=dict(scaleanchor="y"),
-            yaxis=dict(autorange="reversed"),
-            margin=dict(l=0, r=0, t=20, b=0),
-            title="SIMP progress (binned coloring)"
+            xaxis=dict(scaleanchor="y", showgrid=False, zeroline=False, visible=False),
+            yaxis=dict(autorange="reversed", showgrid=False, zeroline=False, visible=False),
+            margin=dict(l=0, r=0, t=0, b=0),
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
         )
+        
         return fig
 
     # ---------------------------

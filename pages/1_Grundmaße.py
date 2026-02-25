@@ -1,9 +1,11 @@
 import streamlit as st
 from modules.state import init_session_states, init_remove_input_force_support
-from modules.ui_parts import ui_geometry
-from modules.geometry import build_structure_from_session_states
+from modules.ui_parts import ui_storage_sidebar, ui_geometry
+from modules.geometry import build_object
 from plots import Plotter
 
+#Speichern der Struktur zu jedem Zeitpunkt möglich
+ui_storage_sidebar()
 init_session_states()                               #Notwendig, damit bei einem refresh der page die Daten geladen werden
 c1, c2 = st.columns(2)
 with c1: 
@@ -33,6 +35,9 @@ structure = build_structure_from_session_states()                          #Stru
 st.session_state["geometry_loaded"] = True                              #Status ändern
 st.session_state["structure"] = structure                               #Struktur in session state speichern
 
+#Working Structure in session_state speichern
+st.session_state["structure"] = structure
+
 placeholder = st.empty()
 
 st.write(st.session_state.geometry_loaded)
@@ -41,6 +46,6 @@ if st.session_state["depth"] > 1:                      #Je nachdem ob 2d oder 3d
     fig = plotter.body_undeformed(structure, True, display=False)
 
 else:
-    fig = plotter.beam_undeformed(structure, True, 2, 1, display=False)
+    fig = plotter.beam_undeformed(structure, True, 3, 1, display=False)
 
 placeholder.plotly_chart(fig, width="stretch")
