@@ -192,27 +192,30 @@ class Structure:
             return False
 
         node = self.graph.nodes[node_id]["node_ref"]
-        x0, y0 = node.pos[0], node.pos[1]
+        pos0 = node.pos  #Dimensionsunabhängig
 
         directions = []
 
         for n_id in neighbors:
             neighbor = self.graph.nodes[n_id]["node_ref"]
-            dx = neighbor.pos[0] - x0
-            dy = neighbor.pos[1] - y0
 
-            length = np.hypot(dx, dy)
-            if length == 0:
+            #Vektor berechnen
+            diff = neighbor.pos - pos0
+            length = np.linalg.norm(diff)
+
+            #Überspringen bei numerischen Fehlern
+            if length < 1e-9:
                 continue
 
-            directions.append([dx / length, dy / length])
+            directions.append(diff / length)
 
+        #Weniger Elemente als Dimension: Nicht stabil
         if len(directions) < self.dim:
             return False
 
         directions = np.array(directions)
 
-        #Rang bestimmen
+        #Rang bestimmen, muss abhängig von dim 2 oder 3 sein
         rank = np.linalg.matrix_rank(directions)
 
         return rank >= self.dim
@@ -228,19 +231,26 @@ class Structure:
         #Edges entfernen 
         self.graph.remove_edges_from(edges_to_remove)
 
-        #2. Schritt: Frei hängende Knoten entfernen
-        nodes_to_remove = []
-        for node_id, data in self.graph.nodes(data=True):
-            #0 Verbindungen? Knoten zu Liste hinzufügen
-            if self.graph.degree(node_id) == 0:
-                nodes_to_remove.append(node_id)
-        self.graph.remove_nodes_from(nodes_to_remove)
+        #2. Schritt: Freie und nur an einem Element hängende Knoten entfernen
+        nodes_removed_count = 0
+        while True:
+            nodes_to_remove = []
+            for node_id, data in self.graph.nodes(data=True):
+                #Keine Verbindung, nur eine Verbindung?
+                if self.graph.degree(node_id) <= 1:
+                    nodes_to_remove.append(node_id)
+            
+            #Aus Schleife raus, sobald keine Nodes entfernt werden können, so wird auch neue Struktur überprüft
+            if not nodes_to_remove: break
+            
+            self.graph.remove_nodes_from(nodes_to_remove)
+            nodes_removed_count += len(nodes_to_remove)
 
         #Freiheitsgrade neu zuweisen, Steifigkeit und Kraft neu aufstellen
         self.assign_dofs()
         self.assemble()
 
-        return len(edges_to_remove), len(nodes_to_remove)
+        return len(edges_to_remove), nodes_removed_count
     
 
     #Statisch, da Funktion unabhängig von self funktionieren soll aber rein logisch hier hin gehört

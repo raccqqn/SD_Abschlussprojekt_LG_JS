@@ -3,6 +3,7 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.colors
 
 class Plotter:
     """
@@ -129,7 +130,7 @@ class Plotter:
 
         if display:
             target = placeholder if placeholder else st
-            target.plotly_chart(fig, use_container_width=True)
+            target.plotly_chart(fig, width="stretch")
             
         return fig
 
@@ -197,25 +198,25 @@ class Plotter:
 
         if display:
             target = placeholder if placeholder else st
-            target.plotly_chart(fig, use_container_width=True)
+            target.plotly_chart(fig, width="stretch")
             
         return fig
 
     # ---------------------------
     # SIMP: Farbliche Darstellung nach x_vals
-    # - wir gruppieren Edges in 'bins' um nicht 5000 traces zu erzeugen
-    # ---------------------------
-    def simp_figure_2d(self, structure, x_vals, bins=15, node_markers=True, node_size=2):
+
+    def simp_figure_2d(self, structure, x_vals, iter, comp, vol_frac, bins=15, node_markers=True, node_size=2):
         """
         SIMP Visualisierung: 
         - Nur Federn mit x >= 0.01 werden gezeichnet.
         - Nur Knoten, die noch aktive Federn haben, werden gezeichnet.
         - Blau-Weiß Skala (Blau = massiv, Weiß/Hellblau = dünn).
         """
-        import plotly.express as px
-        
-        # Farbskala: Von Hellblau (niedrig) zu Dunkelblau (hoch)
-        colors = px.colors.sample_colorscale("Blues", [i/(bins-1) for i in range(bins)])
+        low_color_str = "rgb(40, 40, 40)"
+        high_color_str = "rgb(59, 130, 246)"
+
+        # Farbskala: Von Dunkelgrau (niedrig) zu hellem blau (hoch)
+        colors = plotly.colors.n_colors(low_color_str, high_color_str, bins, colortype="rgb")
         
         xs_bins = [[] for _ in range(bins)]
         ys_bins = [[] for _ in range(bins)]
@@ -264,7 +265,12 @@ class Plotter:
                 hoverinfo="skip", showlegend=False
             ))
 
+        #Live Infos, aktuellen Werte aus yield anzeigen
+        live_info = f"Iteration: {iter} | Compliance: {comp:.3f} | Volume: {vol_frac:.2%}"
+
         fig.update_layout(
+            title={"text": live_info, "y": 0.95, "x": 0.5, "xanchor": "center", "yanchor": "top",
+            "font": {"size": 15, "color": "white"}},
             xaxis=dict(scaleanchor="y", showgrid=False, zeroline=False, visible=False),
             yaxis=dict(autorange="reversed", showgrid=False, zeroline=False, visible=False),
             margin=dict(l=0, r=0, t=0, b=0),
@@ -277,16 +283,16 @@ class Plotter:
     # ---------------------------
     # ESO: Entferne Knoten (node_mask: numpy boolean array aligned with initial_node_ids)
     # ---------------------------
-    def eso_figure_2d(self, structure, node_mask, initial_node_ids, node_size=3):
+    def eso_figure_2d(self, structure, node_mask, initial_node_ids, iter, n_rem, vol_frac, node_size=3):
         """
         Zeichnet die Struktur, filtert Knoten und Kanten die nicht mehr existieren.
         - node_mask: boolean array, matching order of initial_node_ids (True => node exists)
         - initial_node_ids: list/array of node ids in the original indexing order used by ESO
         """
-        # build mapping node_id -> bool
+        #ID's der lebenden Nodes auslesen
         node_alive = {nid: bool(node_mask[i]) for i, nid in enumerate(initial_node_ids)}
 
-        # edges only if both nodes alive
+        #Edges, nur wenn beide Nodes noch aktiv sind
         x_lines, y_lines, _ = self._edges_to_lines_2d(structure, include_node_mask=node_alive)
 
         fig = go.Figure()
@@ -294,7 +300,7 @@ class Plotter:
                                    line=dict(width=1.2, color="#444444"),
                                    hoverinfo="skip"))
 
-        # nodes
+        #nodes
         x_nodes, y_nodes = [], []
         for nid, ndata in structure.graph.nodes(data=True):
             node = ndata["node_ref"]
@@ -304,16 +310,19 @@ class Plotter:
                                    marker=dict(size=node_size, color="#1f77b4"),
                                    hoverinfo="skip"))
 
+        live_info = f"Iteration: {iter} | Removed: {n_rem} | Volume: {vol_frac:.0%}"
+
         fig.update_layout(
+            title={"text": live_info, "y": 0.95, "x": 0.5, "xanchor": "center", "yanchor": "top",
+            "font": {"size": 15, "color": "white"}},
             showlegend=False,
             xaxis=dict(scaleanchor="y"),
             yaxis=dict(autorange="reversed"),
             margin=dict(l=0, r=0, t=20, b=0),
-            title="ESO progress (removed nodes filtered out)"
         )
         return fig
 
-    def simp_figure_3d(self, structure, x_vals, node_markers=False):
+    def simp_figure_3d(self, structure, x_vals, iter, comp, vol_frac, node_markers=False):
         # 1. Daten vorbereiten
         edges = list(structure.graph.edges())
         
@@ -352,13 +361,18 @@ class Plotter:
                 width=5,
                 color=color_values, # Plotly mappt die Dichte-Werte auf die Farbskala
                 colorscale='Blues', # Oder 'Viridis', 'Greys' etc.
-                showscale=True
+                showscale=False
             ),
             hoverinfo="skip"
         ))
 
-        # Layout stabilisieren
+        #Live Infos, aktuellen Werte aus yield anzeigen
+        live_info = f"Iteration: {iter} | Compliance: {comp:.3f} | Volume: {vol_frac:.2%}"
+
+        #Layout aktualisieren, stabilisieren
         fig.update_layout(
+            title={"text": live_info, "y": 0.95, "x": 0.5, "xanchor": "center", "yanchor": "top",
+            "font": {"size": 15, "color": "white"}},
             margin=dict(l=0, r=0, t=0, b=0),
             scene=dict(
                 xaxis=dict(visible=False),
@@ -369,32 +383,131 @@ class Plotter:
         )
         return fig
 
-    def eso_figure_3d(self, structure, node_mask, initial_node_ids):
+    def eso_figure_3d(self, structure, node_mask, initial_node_ids, iter, n_rem, vol_frac):
+        #Node-Status Mapping
         node_alive = {nid: bool(node_mask[i]) for i, nid in enumerate(initial_node_ids)}
+        
+        #Geometrie extrahieren
         x_lines, y_lines, z_lines, _ = self._edges_to_lines_3d(structure, include_node_mask=node_alive)
+        
         fig = go.Figure()
-        fig.add_trace(go.Scatter3d(x=x_lines, y=y_lines, z=z_lines, mode="lines",
-                                   line=dict(width=2, color="#444444"), hoverinfo="skip"))
-        x_nodes,y_nodes,z_nodes = [],[],[]
-        for nid, ndata in structure.graph.nodes(data=True):
-            node = ndata["node_ref"]
-            if node_alive.get(nid, True):
-                x_nodes.append(node.pos[0]); y_nodes.append(node.pos[1]); z_nodes.append(node.pos[2])
-        fig.add_trace(go.Scatter3d(x=x_nodes, y=y_nodes, z=z_nodes, mode="markers",
-                                   marker=dict(size=3, color="#1f77b4"), hoverinfo="skip"))
-        fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=20, b=0))
-        fig.update_scenes(aspectmode="data")
+
+        #Struktur-Linien (Dunkles Grau für besseren Kontrast)
+        fig.add_trace(go.Scatter3d(
+            x=x_lines, y=y_lines, z=z_lines, 
+            mode="lines",
+            line=dict(width=2, color="#555555"), 
+            hoverinfo="skip"
+        ))
+
+        #Aktive Knoten
+        pts = np.array([nd["node_ref"].pos for nid, nd in structure.graph.nodes(data=True) if node_alive.get(nid, True)])
+        if pts.size > 0:
+            fig.add_trace(go.Scatter3d(
+                x=pts[:,0], y=pts[:,1], z=pts[:,2], 
+                mode="markers",
+                marker=dict(size=2, color="#1f77b4", opacity=0.8), 
+                hoverinfo="skip"
+            ))
+
+        #Kamera, Layout
+        camera = dict(
+            eye=dict(x=-1.5, y=-1.5, z=1.5),
+            center=dict(x=0, y=0, z=0),
+            up=dict(x=0, y=0, z=1)
+        )
+
+        live_info = f"Iteration: {iter} | Removed: {n_rem} | Volume: {vol_frac:.0%}"
+
+        fig.update_layout(
+            title={"text": live_info, "x": 0.5, "xanchor": "center", "y": 0.95},
+            showlegend=False,
+            scene_camera=camera,
+            margin=dict(l=0, r=0, t=80, b=0), # Mehr Platz oben für Titel
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)"
+        )
+        
+        fig.update_scenes(
+            aspectmode="data",
+            xaxis_visible=False, 
+            yaxis_visible=False, 
+            zaxis_visible=False
+        )
+        
+        return fig
+    
+    def plot_result_comparison(self, structure, u, scale=1.0):
+        """
+        Zeigt die unverformte Struktur (grau) und die verformte Struktur (Blau). Skalierbar.
+        """
+
+        #Trigger für Dimension, so Dimensionsunabhängig
+        is_3d = (structure.dim == 3)
+        fig = go.Figure()
+
+        #Unverformte Struktur, case für 2D, 3D
+        if is_3d:
+            x_u, y_u, z_u, _ = self._edges_to_lines_3d(structure)
+            trace_ref = go.Scatter3d(x=x_u, y=y_u, z=z_u, mode="lines",
+                                     line=dict(color="lightgray", width=2, dash="dot"),
+                                     name="Unverformt", opacity=0.5)
+        else:
+            x_u, y_u, _ = self._edges_to_lines_2d(structure)
+            trace_ref = go.Scattergl(x=x_u, y=y_u, mode="lines",
+                                     line=dict(color="lightgray", width=1.5, dash="dot"),
+                                     name="Unverformt")
+        fig.add_trace(trace_ref)
+
+        #Verformte Struktur
+        #Wird berechnet aus pos + u * scale, so frei skalierbar
+        x_def, y_def, z_def = [], [], []
+        
+        for _, _, data in structure.graph.edges(data=True):
+            s = data["spring"]
+            #Positionen, skalierte Verschiebungen
+            p1 = s.i.pos + u[s.i.dof_indices] * scale
+            p2 = s.j.pos + u[s.j.dof_indices] * scale
+            
+            x_def += [p1[0], p2[0], None]
+            y_def += [p1[1], p2[1], None]
+            if is_3d: z_def += [p1[2], p2[2], None]
+
+        if is_3d:
+            trace_def = go.Scatter3d(x=x_def, y=y_def, z=z_def, mode="lines",
+                                     line=dict(color="#1f77b4", width=4),
+                                     name="Verformt")
+            #Blickwinkel für 3D-Struktur festlegen
+            camera = dict(eye=dict(x=-1.5, y=-1.5, z=1.5))
+            fig.update_layout(scene_camera=camera, scene=dict(aspectmode="data"))
+        else:
+            trace_def = go.Scattergl(x=x_def, y=y_def, mode="lines",
+                                     line=dict(color="#1f77b4", width=3),
+                                     name="Verformt")
+            fig.update_layout(xaxis=dict(scaleanchor="y"), yaxis=dict(autorange="reversed"))
+
+        fig.add_trace(trace_def)
+
+        #Layout festlegen, Legende rechts unten
+        fig.update_layout(
+            title="Vergleich: Verformung (skaliert)",
+            margin=dict(l=0, r=0, t=40, b=0),
+            legend=dict(orientation="h", yanchor="bottom", y=0.02, xanchor="right", x=0.98),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="white")
+        )
         return fig
     
     #Dimension der Struktur bestimmen
-    def eso_figure(self, structure, node_mask, initial_node_ids):
+    def eso_figure(self, structure, node_mask, initial_node_ids, iter, n_removed, vol_frac):
         if structure.dim == 3:
-            return self.eso_figure_3d(structure, node_mask, initial_node_ids)
+            return self.eso_figure_3d(structure, node_mask, initial_node_ids, iter, n_removed, vol_frac)
         else:
-            return self.eso_figure_2d(structure, node_mask, initial_node_ids)
+            return self.eso_figure_2d(structure, node_mask, initial_node_ids, iter, n_removed, vol_frac)
         
-    def simp_figure(self, structure, x_vals):
+    def simp_figure(self, structure, x_vals, iter, comp, vol_frac):
         if structure.dim == 3:
-            return self.simp_figure_3d(structure, x_vals)
+            return self.simp_figure_3d(structure, x_vals, iter, comp, vol_frac)
         else:
-            return self.simp_figure_2d(structure, x_vals)
+            return self.simp_figure_2d(structure, x_vals, iter, comp, vol_frac)

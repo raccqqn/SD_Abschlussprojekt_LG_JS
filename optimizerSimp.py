@@ -228,7 +228,8 @@ class OptimizerSIMP():
                 "x": x_vals,
                 #ee ist Array, ohne copy wird auf den selben Speicher verwiesen, kritisch!
                 "energies": ee.copy(),
-                "volume": np.sum(x_vals * self.L_vals),                                                              
+                #"volume": np.sum(x_vals * self.L_vals),
+                "frac": np.sum(x_vals * self.L_vals) / self.V_total,                                                        
                 "compliance": compliance
             }
 
