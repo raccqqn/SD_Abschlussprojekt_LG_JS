@@ -1,55 +1,71 @@
 import streamlit as st
 from modules.ui_optimizer import plot_opt
 from modules.state import init_session_states
-from modules.ui_parts import ui_storage_sidebar
+from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar_from_structure, ui_pages_sidebar
 from plots import Plotter
 from optimizerESO import OptimizerESO
 from optimizerSimp import OptimizerSIMP
 import copy
 
+if st.session_state.get("optimization_from_structure", True):
+    ui_pages_sidebar_from_structure()
+else:
+    ui_pages_sidebar()
+
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
 init_session_states()   #Notwendig, damit bei einem refresh der page die Daten geladen werden
+
 plotter = Plotter()
 
 c1, c2 = st.columns(2)
 with c1: 
-    if st.button("Zurück", width="stretch", disabled=st.session_state["lock_optimization"]):
+    if st.button("Zurück", width="stretch"):
         st.switch_page("pages/2_Festlager_und_Kräfte.py")
 with c2: 
     if st.button("Hauptseite", width = "stretch"):
         st.switch_page("Startseite.py")
 st.divider()
-st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken derweil
+st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken der Geometrie
 
-st.subheader("Optimierer wählen")
-c1,c2 = st.columns(2)
-with c1: option = st.selectbox("Optimierungs-Wunschkonzert", ("Eso", "SIMP"), disabled=st.session_state["lock_optimization"])
+st.header("Optimierung der Struktur")
+c1,c2 = st.columns([0.3 , 0.7])
+with c1: option = st.selectbox("Optimierer wählen", ("Eso", "SIMP"), disabled=st.session_state["lock_optimization"])
 with c2: 
     final_volume = st.slider("Gewünschtes Zielvolumen in %", min_value = 0.0, max_value = 1.0, value = 0.6, format="percent", disabled=st.session_state["lock_optimization"])
 
     if option == "Eso":
-        with c1: st.write("Dieser Optimierer nutzt das Verfahren, was in der Vorlesung vorgschlagen wurde. Es ist abhängig von den Federenergien.")
+        with c1: st.write("Optimiert anhand der Federenergien")
         with c2: aggressivity = st.slider("Aggressivität des Entfernens", min_value = 0.0, max_value = 1.0, value = 0.4, disabled=st.session_state["lock_optimization"])
         
     else:
-        with c1: st.write("Eigens entwickelter Optimierer, der mit der Nachgiebigkeit der einzelnen Federn arbeitet.")
+        with c1: st.write("Optimiert anhand der Nachgiebigkeit der einzelnen Federn")
         with c2:
-            cc1, cc2 = st.columns(2)
+            cc1, cc2, cc3 = st.columns(3)
             with cc1: 
                 max_iter = st.number_input("Iterationen",  min_value=1, value=25, disabled=st.session_state["lock_optimization"])
+                
 
             with cc2: 
                 #Filter entweder None oder auf Wert gesetzt
                 filter_none = st.segmented_control("Filter", ["Ohne", "Mit"], default="Mit", width="stretch", selection_mode="single", disabled=st.session_state["lock_optimization"])
+                
                 if filter_none == "Ohne":
-                    filter = None
+                    filter_radius = None
                 else:
                     filter_input = st.number_input("Wert eingeben", value = 1.5, label_visibility="collapsed", disabled=st.session_state["lock_optimization"])
-                    filter = filter_input
+                    filter_radius = filter_input
+            
+            with cc3: 
+                threshold_input = st.radio("Clean-Up Intensität", ["Niedrig", "Mittel", "Hoch"] )
+                if threshold_input == "Niedrig":
+                    threshold = 0.01
+                elif threshold_input == "Mittel":
+                    threshold = 0.05
+                else:
+                    threshold = 0.1
 
-
-struc = st.session_state.get("structure")                           #Structur holen
+struc = st.session_state.get("structure")        #Structur holen
 optimieren = st.button("Optimierung durchführen", key = "lock_optimization", width="stretch")
 #Nach dem Klick auf Optimierung durchführen werden alle Eingabefelder/Zurückbutton gespeert, um eine Änderung des Models zu verhindern. 
 
@@ -78,10 +94,11 @@ if optimieren:
             plot_placeholder.plotly_chart(fig, width="stretch", key=f"eso_plot_iter_{it}")
 
             info_placeholder.write(f"Iter: {it} — remaining nodes: {remaining}")
-    
+        st.success(f"Bereinigt: Nach {it} Iterationen noch {remaining} Knoten erhalten.")
+
     else:        
         Opt = OptimizerSIMP(struc)
-        opt = Opt.optimize(final_volume, max_iter, filter)
+        opt = Opt.optimize(final_volume, max_iter, filter_radius=filter_radius)
 
         #Yield gibt dic mit aktuellem Status zurück
         for yield_dict in opt:
@@ -96,5 +113,5 @@ if optimieren:
     
             info_placeholder.write(f"Iter: {it} — compliance: {compliance:.4f} — volume: {volume:.3f}")
         
-        e_rem, n_rem = struc.cleanup_simp()
+        e_rem, n_rem = struc.cleanup_simp(threshold)
         st.success(f"Bereinigt: {e_rem} Federn und {n_rem} Knoten entfernt.")

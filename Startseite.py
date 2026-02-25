@@ -5,7 +5,12 @@ from structureManager import StructureManager
 from datetime import datetime
 
 st.set_page_config("SWD Abschlussprojekt")
+
 init_session_states()
+
+if "optimization_from_structure" not in st.session_state:
+    st.session_state["optimization_from_structure"] = False
+
 st.image("cover.png")
 
 if st.button("Neue Modellierung starten", width = "stretch"):
@@ -47,8 +52,10 @@ with st.expander("Vorhandene Modellierung laden"):
 
                     #Struktur und alle Attribute in Session State speichern
                     sync_session_state_with_struc(loaded_struct)
-
-                    st.switch_page("pages/3_Optimierer.py") 
+                    st.session_state["optimization_from_structure"] = True
+                    st.switch_page("pages/3_Optimierer.py")    #query_params gibt Info mit, woher man kommt bei Klick
+                        
+                    
                     st.toast(f"✅ {selected_name} erfolgreich geladen!")
 
                     #Trigger setzen

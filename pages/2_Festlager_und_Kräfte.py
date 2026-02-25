@@ -1,10 +1,15 @@
 import streamlit as st
 from modules.state import init_session_states, init_remove_input_force_support
-from modules.ui_parts import ui_storage_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
+from modules.ui_parts import ui_pages_sidebar_from_structure, ui_storage_sidebar, ui_pages_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
 from modules.geometry import build_structure_from_session_states
 from structure import Structure
 from plots import Plotter
 from streamlit_drawable_canvas import st_canvas
+
+if st.session_state.get("optimization_from_structure", True):
+    ui_pages_sidebar_from_structure()
+else:
+    ui_pages_sidebar()
 
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
@@ -13,7 +18,7 @@ plotter = Plotter()
 
 c1, c2 = st.columns(2)
 with c1: 
-    if st.button("Zurück", width="stretch"):
+    if st.button("Zurück", width="stretch", disabled=st.session_state["optimization_from_structure"]):
         st.switch_page("pages/1_Grundmaße.py")
 with c2: 
     if st.button("Weiter", width="stretch"):

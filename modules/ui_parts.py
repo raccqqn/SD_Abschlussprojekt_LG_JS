@@ -52,7 +52,7 @@ def ui_storage_sidebar():
         if save_name in existing_saves:
             st.warning(f"/{save_name}/ existiert bereits und wird überschrieben.")
         
-        if st.sidebar.button("Speichern", use_container_width=True, key="save_button_global"):
+        if st.sidebar.button("Speichern", width="stretch", key="save_button_global"):
             structure = st.session_state.get("structure")
             
             if structure is not None:
@@ -64,6 +64,27 @@ def ui_storage_sidebar():
                     st.sidebar.error(f"Fehler beim Speichern: {e}")
             else:
                 st.sidebar.warning("Keine Struktur zum Speichern vorhanden.")
+
+def ui_pages_sidebar():
+    """
+    Automatischer Sidebar vom /pages Ordner wird deaktiviert und mit einem selber erstellen erstzt.
+    Dadurch werden manche Pages je nach Bedingung ausgegraut. 
+    """
+    if "lock_optimization" not in st.session_state:
+        st.session_state["lock_optimization"] = False
+        
+    with st.sidebar:
+        st.page_link("Startseite.py", label = "Startseite", width = "stretch")
+        st.page_link("pages/1_Grundmaße.py", label = "Grundmaße", disabled=st.session_state["lock_optimization"])   #Beim Klick auf Optimierung durchführen, kann Geometrie nicht mehr geändert werden
+        st.page_link("pages/2_Festlager_und_Kräfte.py", label = "Lager und Kräfte")
+        st.page_link("pages/3_Optimierer.py", label = "Optimierung")
+
+def ui_pages_sidebar_from_structure():
+    with st.sidebar:
+        st.page_link("Startseite.py", label = "Startseite", width = "stretch", disabled = True)
+        st.page_link("pages/1_Grundmaße.py", label = "Grundmaße", disabled=True)   
+        st.page_link("pages/2_Festlager_und_Kräfte.py", label = "Lager und Kräfte")
+        st.page_link("pages/3_Optimierer.py", label = "Optimierung")
 
 def sync_session_state_with_struc(structure):
     
@@ -87,8 +108,8 @@ def sync_session_state_with_struc(structure):
     #Objekt selbst speichern
     st.session_state["structure"] = structure
 
-def sync_ui_values():                                       #Session_States eingaben aktualisieren: 
-    st.session_state["length"] = st.session_state["ui_length"]    #2 unterschiedliche ses-stat, damit im Eingabefeld immer der aktuelle Wert steht.
+def sync_ui_values():                                               #Session_States eingaben aktualisieren: 
+    st.session_state["length"] = st.session_state["ui_length"]      #2 unterschiedliche ses-stat, damit im Eingabefeld immer der aktuelle Wert steht.
     st.session_state["width"] = st.session_state["ui_width"]
     st.session_state["depth"] = st.session_state["ui_depth"]
     st.session_state["EA"] = st.session_state["ui_EA"]
@@ -151,7 +172,7 @@ def ui_festlager_2d():
     with c4: add = st.button("Hinzufügen", key = "add_sup", width="stretch")
     
     if add:
-        if any(mask):                                                                         #Mindestens 1 Wert muss TRUE sein
+        if any(mask):                                                                           #Mindestens 1 Wert muss TRUE sein
             pos = (int(x), int(y))                                                              #Knoten Koordinate
             st.session_state["supports"][pos] = {"pos" : pos, "mask" : mask}                    #Speichern im Dictionary - Überschreibt Position, falls da schon ein Wert drinnen war
 
@@ -198,7 +219,7 @@ def ui_festlager_3d():
     if add:                                                                             #Hinzufügen der Freiheitsgrade in ein Dictionary
         if any(mask):                                                                   
             if all_y_values == True:
-                for i in range(st.session_state["width"]):                                 #Iterieren über die ganze Breite
+                for i in range(st.session_state["width"]):                              #Iterieren über die ganze Breite
                     pos = (int(x), int(i), int(z))                                      #Pos aus Eingabe speichern
                     st.session_state["supports"][pos] = {"pos" : pos, "mask" : mask}    #Pos und True/False mask wird gespeichert                                              
             
@@ -230,7 +251,6 @@ def ui_festlager_expander():
         if st.button("Alle löschen", key="sup_clear"):
             st.session_state["supports"].clear()
             st.rerun()
-
 
 
 def ui_force_2D():
@@ -322,21 +342,22 @@ def ui_force_3D_fun():
     with c3: force_z_plus = st.number_input("Fz", value = 0, key = "z_force_plus")
 
     options_length = list(range(st.session_state["length"]))
-    options_depth = list(range(st.session_state["depth"]))
+    options_width = list(range(st.session_state["width"]))
+    z_max = st.session_state["depth"]-1
     
     st.select_slider("Kraftangriffsbereich in x-Richtung", options = options_length, value = [0, st.session_state["length"]-1], key="slider_force_x")
-    st.select_slider("Kraftangriffsbereich in z-Richtung", options = options_depth, value = [0, st.session_state["depth"]-1], key="slider_force_z")
+    st.select_slider("Kraftangriffsbereich in y-Richtung", options = options_width, value = [0, st.session_state["width"]-1], key="slider_force_y")
 
     ui_force_3d_fun_image()
     
     add3 = st.button("Hinzufügen", key = "add_3", width="stretch")
-    start_z, end_z = st.session_state["slider_force_z"]
+    start_z, end_z = st.session_state["slider_force_y"]
     start_x, end_x = st.session_state["slider_force_x"]
     
     if add3:
         for i in range(start_z, end_z+1):
             for j in range(start_x, end_x+1):
-                pos = (int(j), 0, int(i))
+                pos = (int(j), int(i), z_max)
                 f_value = [force_x_plus, force_y_plus, force_z_plus]
                 if any(v != 0 for v in f_value):
                     st.session_state["forces"][pos] = {"pos" : pos, "vec" : f_value}
@@ -347,18 +368,17 @@ def ui_force_3d_fun_image():
     Stellt dadurch visuell dar, in welchem Bereich bei einer 3D Struktur eine Kraft von oben (y-Richtung) einwirkt.
     """
     width = 700
-    height = int(width*st.session_state["depth"]/st.session_state["length"])*4  #Verhältnis: width/height = length/depth -> Bild wird an reales Verhältnis angepasst
-                                                                                #Ist auch ein wenig hochskaliert, damit bei geringerer Tiefe eine bessere Darstellung ist. 
+    height = int(width*st.session_state["width"]/st.session_state["length"])    #Verhältnis: width/height = st.length/st.width -> Bild wird an reales Verhältnis angepasst
     start_force_length, end_force_length = st.session_state["slider_force_x"]   #Werte aus Slider abrufen
-    start_force_depth, end_force_depth = st.session_state["slider_force_z"]
+    start_force_width, end_force_width = st.session_state["slider_force_y"]
 
     hg = np.array([38, 39, 48], dtype=np.uint8)     #UINT8 = RGB Farbbereich = Zahlen von 0 - 255
                                                     #Gleiche HG Farbe wie st.input_widgets
     x_max = st.session_state["length"]-1        
-    z_max = st.session_state["depth"]-1
+    y_max = st.session_state["width"]-1
 
-    z_start = int((start_force_depth/z_max)*height)     #Normierung der Eingabe und skalierung auf die Höhe
-    z_end = int((end_force_depth/z_max)*height)
+    y_start = int((start_force_width/y_max)*height)     #Normierung der Eingabe und skalierung auf die Höhe
+    y_end = int((end_force_width/y_max)*height)
 
     x_start = int((start_force_length / x_max)*width)
     x_end = int((end_force_length / x_max)*width)
@@ -370,18 +390,18 @@ def ui_force_3d_fun_image():
     mask_x = np.zeros((height, width), dtype=bool)          #True/False Maske für die gewählten x-Werte
     mask_x[:, x_start:x_end+1] = True                       #x_end+1 = letzter Wert inkludiert
 
-    mask_z = np.zeros((height, width), dtype=bool)          #Maske für die ausgewählten z-Werte
-    mask_z[z_start:z_end+1, :] = True                       #+1, damit bei z_start=z_end eine Linie dargestellt wird
+    mask_y = np.zeros((height, width), dtype=bool)          #Maske für die ausgewählten z-Werte
+    mask_y[y_start:y_end+1, :] = True                       #+1, damit bei z_start=z_end eine Linie dargestellt wird
 
     color_alone = np.array([0, 70, 70], dtype=np.uint8)     #Einfärben der Bereiche
-    color_overlap = np.array([255, 75, 75], dtype=np.uint8) #Überlappungen(tatsächlicher Bereich) wird geefärbt wie rot der Slider
+    color_overlap = np.array([255, 75, 75], dtype=np.uint8) #Überlappungen(tatsächlicher Bereich) wird rot geefärbt wie der Slider
 
     img[mask_x] = color_alone
-    img[mask_z] = color_alone
-    img[mask_x & mask_z] = color_overlap
+    img[mask_y] = color_alone
+    img[mask_x & mask_y] = color_overlap
     
     # Bild anzeigen
-    st.image(img, caption=f"Ausgewählter Bereich: x: {start_force_length}-{end_force_length} + z: {start_force_depth}-{end_force_depth}")
+    st.image(img, caption=f"Ausgewählter Bereich: x: {start_force_length}-{end_force_length} + y: {start_force_width}-{end_force_width}")
 
 def update_structure():
     struc = st.session_state.get("structure")
