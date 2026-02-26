@@ -132,9 +132,18 @@ if st.session_state["lock_optimization"] == True:
     st.session_state["lock_optimization"] = False
     st.rerun()
 
+#Je nach Dimension kommt eine leicht andere Fehlermeldung, muss mit dem Button geschlossen werden. 
 if st.session_state["optimization_error"]:
-    st.error("Eine SIMP-Optimierung ohne Filter ist aufgrund der derzeitigen Lagerung nicht möglich. \
+    if struc.dim == 2:
+        st.error("Eine SIMP-Optimierung ohne Filter ist aufgrund der derzeitigen Lagerung nicht möglich. \
                 Entweder SIMP-Optimierung mit Filter machen, Lagerungen ändern oder ESO-Optimierer nutzen.")
+    else:
+        st.error("Eine SIMP-Optimierung ist aufgrund der derzeitigen Lagerung nicht möglich. \
+                Entweder Lagerungen an die Seite setzen oder ESO-Optimierer nutzen.")
+    if st.button("Fehlermeldung schließen", type="primary", width="stretch"):
+        st.session_state["optimization_error"] = False
+        st.rerun()
+
 
 #Nach abgeschlossener Optimierung: Ergebnisse darstellen, Logik in Module ausgelagert 
 if st.session_state.get("optimization_done"):

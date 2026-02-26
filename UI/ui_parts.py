@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import base64   # Für Hintergrundbild
 from UI.state import init_max_values, init_all_y_values_values, init_remove_input_force_support
 from src.structureManager import StructureManager 
 from datetime import datetime
@@ -216,7 +217,7 @@ def ui_festlager_3d():
         #Die Input Widgets (checkbox/toggle) werden je nach gewählten Widget deaktiviert mit disabled =
         y_input = st.number_input("y", min_value = 0, max_value = st.session_state["width"] - 1, value = 0, key = "y_sup", disabled = st.session_state["all_y_values"] or st.session_state["y_max"] )
         y_max = st.checkbox("Maximaler y-Wert", key = "y_max", on_change=sync_y_max_value, disabled=st.session_state["all_y_values"] )
-        all_y_values = st.toggle("Alle y-Werte", value = False, key = "all_y_values", disabled = st.session_state["y_max"] or st.session_state["all_z_values"] )
+        all_y_values = st.toggle("Alle y-Werte", value = False, key = "all_y_values", disabled = st.session_state["y_max"])
 
         #Wert für y definieren, je nach Button
         if y_max: y = st.session_state["width"]-1
@@ -226,7 +227,7 @@ def ui_festlager_3d():
         #Wie bei y werden die Widgets deaktiviert
         z_input = st.number_input("z", min_value = 0, max_value = st.session_state["depth"] - 1, value = 0, key = "z_sup", disabled=st.session_state["z_max"] or st.session_state["all_z_values"] )
         z_max = st.checkbox("Maximaler z-Wert", key = "z_max", on_change=sync_z_max_value, disabled=st.session_state["all_z_values"])
-        all_z_values = st.toggle("Alle z-Werte", value = False, key = "all_z_values", disabled = st.session_state["z_max"] or st.session_state["all_y_values"] )
+        all_z_values = st.toggle("Alle z-Werte", value = False, key = "all_z_values", disabled = st.session_state["z_max"] )
 
         #Wert für z definieren, je nach Button
         if z_max: z = st.session_state["depth"]-1
@@ -240,20 +241,25 @@ def ui_festlager_3d():
         
     if add:                                                                             #Hinzufügen der Freiheitsgrade in ein Dictionary
         if any(mask):                                                                   
-            if all_y_values == True:
+            if all_y_values == True and all_z_values == False:
                 for i in range(st.session_state["width"]):                              #Iterieren über die ganze Breite
                     pos = (int(x), int(i), int(z))                                      #Pos aus Eingabe speichern
                     st.session_state["supports"][pos] = {"pos" : pos, "mask" : mask}    #Pos und True/False mask wird gespeichert                                              
             
-            elif all_z_values == True:                                                  #Das gleiche mit den z-Koordinaten
+            elif all_z_values == True and all_y_values == False:                                                  #Das gleiche mit den z-Koordinaten
                 for i in range(st.session_state["depth"]):
                     pos = (int(x), int(y), int(i))
                     st.session_state["supports"][pos] = {"pos" : pos, "mask" : mask}
 
+            elif all_y_values == True and all_z_values == True:
+                for i in range(st.session_state["width"]):                              #Iterieren über die ganze Breite
+                    for j in range(st.session_state["depth"]):
+                        pos = (int(x), int(i), int(j))                                      #Pos aus Eingabe speichern
+                        st.session_state["supports"][pos] = {"pos" : pos, "mask" : mask}    #Pos und True/False mask wird gespeichert 
+
             else:
                 pos = (int(x), int(y), int(z))                                          #Koordinate aus den normalen inupt_widgets
                 st.session_state["supports"][pos] = {"pos" : pos, "mask" : mask}        #Speichern im Dictionary - Überschreibt Position, falls da schon ein Wert drinnen war
-
 
 def ui_festlager_expander():
     with st.expander("Aktuelle Lager"):
@@ -293,6 +299,11 @@ def ui_force_2D():
             st.session_state["forces"][pos] = {"pos" : pos, "vec": f_value}
     
 def ui_force_2d_fun():
+    """
+    Kraft wird anhand von der Position des Input Sliders bestimmt. 
+    Angriffsfläche ist immer die obere Kante. 
+    """
+    
     st.subheader("Kraftbereich bestimmen")
     st.write("Kraftvektor festlegen und mit dem Regler den Kraftangriffsbereich auf der x-Achse wählen. \
              _Die Kraft greift immer an der Außenkante an._")
@@ -306,11 +317,15 @@ def ui_force_2d_fun():
     st.write(start_force, end_force)
 
     if add2:
-        for i in range(start_force, end_force+1):
-            pos = (int(i), int(0))
-            f_value = [force_x_plus, force_y_plus]
-            if any(v != 0 for v in f_value):
-                st.session_state["forces"][pos] = {"pos" : pos, "vec" : f_value}
+        if not any([force_x_plus, force_y_plus]):               #Warnmeldung, falls Kräfte = 0
+            st.warning("Kraftstärke (Fx, Fy) definieren!")
+
+        else:
+            for i in range(start_force, end_force+1):
+                pos = (int(i), int(0))
+                f_value = [force_x_plus, force_y_plus]
+                if any(v != 0 for v in f_value):
+                    st.session_state["forces"][pos] = {"pos" : pos, "vec" : f_value}
 
 def ui_force_expander():
     with st.expander("Angreifende Kräfte"):
@@ -377,12 +392,16 @@ def ui_force_3D_fun():
     start_x, end_x = st.session_state["slider_force_x"]
     
     if add3:
-        for i in range(start_z, end_z+1):
-            for j in range(start_x, end_x+1):
-                pos = (int(j), int(i), z_max)
-                f_value = [force_x_plus, force_y_plus, force_z_plus]
-                if any(v != 0 for v in f_value):
-                    st.session_state["forces"][pos] = {"pos" : pos, "vec" : f_value}
+        if not any([force_x_plus, force_y_plus, force_z_plus]):
+            st.warning("Kraftstärke (Fx, Fy, Fz) definieren!")
+            
+        else:
+            for i in range(start_z, end_z+1):
+                for j in range(start_x, end_x+1):
+                    pos = (int(j), int(i), z_max)
+                    f_value = [force_x_plus, force_y_plus, force_z_plus]
+                    if any(v != 0 for v in f_value):
+                        st.session_state["forces"][pos] = {"pos" : pos, "vec" : f_value}
 
 def ui_force_3d_fun_image():
     """
@@ -425,14 +444,9 @@ def ui_force_3d_fun_image():
     # Bild anzeigen
     st.image(img, caption=f"Ausgewählter Bereich: x: {start_force_length}-{end_force_length} + y: {start_force_width}-{end_force_width}")
 
-import streamlit as st
-import base64
-
-def set_bg_hack(main_bg):
-    # Lade Bild und konvertiere es
+def set_bg_hack(main_bg):       #Quelle davon:  https://discuss.streamlit.io/t/how-do-i-use-a-background-image-on-streamlit/5067
     bin_str = base64.b64encode(open(main_bg, 'rb').read()).decode()
     
-    # CSS Stil definieren
     page_bg_img = f'''
     <style>
     .stApp {{
