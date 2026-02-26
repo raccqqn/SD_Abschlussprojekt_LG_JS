@@ -7,29 +7,24 @@ import plotly.colors
 
 class Plotter:
     """
-    Plotter: Plotly / WebGL-based, Streamlit-friendly.
-    - kompatible Signaturen zu deiner bisherigen API
-    - effizientes Rendering für 2D/3D Strukturen
-    - SIMP: färbt Stäbe nach x-Faktor (Binning für Performance)
-    - ESO: filtert Knoten & Kanten nach node_mask
+    Plotten verschiedener Strukturen, Zustände durch Nutzung von Plotly/WebGL.
+    Effizientes Rendern durch Zeichnen ganzer Linien möglich.
     """
 
     def __init__(self, color_scale="Viridis"):
         # Farbpalette für SIMP-Binning
         self.palette = getattr(px.colors.sequential, color_scale, px.colors.sequential.Viridis)
 
-    # ---------------------------
-    # Helpers
-    # ---------------------------
+    #Hilfsfunktionen:
+
     def _edges_to_lines_2d(self, structure, edge_indices=None, include_node_mask=None):
         """
-        Liefert x_lines,y_lines und für jedes Edge den zugehörigen Node-Paar (i,j).
-        edge_indices: optional list/iterable von edge indices (int) die verwendet werden.
-        include_node_mask: dict mapping node_id -> bool (True=keep). Falls gesetzt, Edges die gelöschte Knoten verbinden werden weggelassen.
+        Liefert x_lines,y_lines und für jedes Edge das zugehörige Node-Paar (i,j).
         """
         x_lines, y_lines = [], []
-        edge_to_nodes = []  # list of (i_id, j_id)
-        # enumerate edges to get deterministic index mapping
+        edge_to_nodes = []
+
+        #Enumerate für Listen-Index
         for idx, (i_id, j_id, data) in enumerate(structure.graph.edges(data=True)):
             if (edge_indices is not None) and (idx not in edge_indices):
                 continue
@@ -62,10 +57,6 @@ class Plotter:
             edge_to_nodes.append((i_id, j_id))
         return x_lines, y_lines, z_lines, edge_to_nodes
 
-    # ---------------------------
-    # Backwards-compatible 2D / 3D "undeformed" display
-    # signature kept similar to old API
-    # ---------------------------
     def beam_undeformed(self, beam, show_nodes=True, node_size=4, linewidth=1, 
                         display=True, placeholder=None):
         
@@ -83,11 +74,11 @@ class Plotter:
         if show_nodes:
             #Dictionary für die verschiedenen Kategorien mit Klarnamen für die Legende
             node_groups = {
-                "Knoten":        {"x": [], "y": [], "color": "#1f77b4", "symbol": "circle", "size": node_size},
-                "Kraftangriff":  {"x": [], "y": [], "color": "red",     "symbol": "circle", "size": node_size + 3},
-                "Festlager (XY)":{"x": [], "y": [], "color": "green", "symbol": "square", "size": node_size + 6},
-                "Loslager (X)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-up", "size": node_size + 9},
-                "Loslager (Y)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-down", "size": node_size + 9},
+                "Knoten":        {"x": [], "y": [], "color": "#1f77b4", "symbol": "circle", "size": node_size +1},
+                "Kraftangriff":  {"x": [], "y": [], "color": "red",     "symbol": "circle", "size": node_size + 4},
+                "Festlager (XY)":{"x": [], "y": [], "color": "green", "symbol": "square", "size": node_size + 8},
+                "Loslager (X)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-up", "size": node_size + 11},
+                "Loslager (Y)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-down", "size": node_size + 11},
             }
 
             for _, ndata in beam.graph.nodes(data=True):
@@ -136,7 +127,6 @@ class Plotter:
 
     def body_undeformed(self, body, show_nodes=True, node_size=3, linewidth=2,
                         display=True, placeholder=None):
-        """ Zeichnet die 3D-Struktur mit farbigen Markern für Lager (Grün) und Kräfte (Rot). """
         
         x_lines, y_lines, z_lines, _ = self._edges_to_lines_3d(body)
         fig = go.Figure()
@@ -159,17 +149,13 @@ class Plotter:
 
             for _, ndata in body.graph.nodes(data=True):
                 node = ndata["node_ref"]
-                f = node.fixed # Erwartet [bool, bool, bool]
+                f = node.fixed
                 
-                # Kategorisierung für 3D
-                if all(f[:3]):
-                    key = "Festlager (XYZ)"
-                elif any(f[:3]):
-                    key = "Loslager"
-                elif np.any(node.F != 0):
-                    key = "Kraftangriff"
-                else:
-                    key = "Knoten"
+                #Kategorisierung für 3D
+                if all(f[:3]): key = "Festlager (XYZ)"
+                elif any(f[:3]): key = "Loslager"
+                elif np.any(node.F != 0): key = "Kraftangriff"
+                else: key = "Knoten"
                 
                 groups[key]["pos"].append(node.pos)
 
@@ -184,9 +170,9 @@ class Plotter:
                     ))
 
         camera = dict(
-            eye=dict(x=-1.5, y=-1.5, z=1.5),  # Position der Kamera
-            center=dict(x=0, y=0, z=0),       # Worauf die Kamera schaut
-            up=dict(x=0, y=0, z=1)            # Welche Achse "oben" ist
+            eye=dict(x=-1.5, y=-1.5, z=1.5),  #Position der Kamera
+            center=dict(x=0, y=0, z=0),       #Worauf die Kamera schaut
+            up=dict(x=0, y=0, z=1)            #Welche Achse "oben" ist
         )
 
         fig.update_scenes(aspectmode="data")
@@ -198,12 +184,15 @@ class Plotter:
 
         if display:
             target = placeholder if placeholder else st
-            target.plotly_chart(fig, width="stretch")
+            target.plotly_chart(fig, width="stretch", config={
+                            "toImageButtonOptions" : {
+                                "format": "png",
+                                "filename" : "optimierte_3d_struktur",
+                                "scale" : 1}})
             
         return fig
 
-    # ---------------------------
-    # SIMP: Farbliche Darstellung nach x_vals
+    #SIMP: Farbliche Darstellung nach x_vals
 
     def simp_figure_2d(self, structure, x_vals, iter, comp, vol_frac, bins=15, node_markers=True, node_size=2):
         """
@@ -216,14 +205,14 @@ class Plotter:
         high_color_str = "rgb(59, 130, 246)" 
 
 
-        # Farbskala: Von Dunkelgrau (niedrig) zu hellem blau (hoch)
+        #Farbskala: Von Dunkelgrau (niedrig) zu hellem blau (hoch)
         colors = plotly.colors.n_colors(low_color_str, high_color_str, bins, colortype="rgb")
         
         xs_bins = [[] for _ in range(bins)]
         ys_bins = [[] for _ in range(bins)]
-        active_node_ids = set() # Zum Tracking der Knoten mit "Material"
+        active_node_ids = set() #Zum Tracking der Knoten mit "Material"
         
-        # 1. Federn filtern und binnig
+        #Federn filtern und binnig
         for idx, (i_id, j_id, data) in enumerate(structure.graph.edges(data=True)):
             x_val = float(x_vals[idx]) if idx < len(x_vals) else 0.0
             
@@ -233,17 +222,17 @@ class Plotter:
             b_idx = int(min(x_val * bins, bins - 1))
             node_i, node_j = data["spring"].i, data["spring"].j
             
-            # Koordinaten für Linien
+            #Koordinaten für Linien
             xs_bins[b_idx] += [node_i.pos[0], node_j.pos[0], None]
             ys_bins[b_idx] += [node_i.pos[1], node_j.pos[1], None]
             
-            # Knoten als "aktiv" markieren
+            #Knoten als "aktiv" markieren
             active_node_ids.add(i_id)
             active_node_ids.add(j_id)
 
         fig = go.Figure()
 
-        # 2. Aktive Federn plotten
+        #Aktive Federn plotten
         for k in range(bins):
             if xs_bins[k]:
                 fig.add_trace(go.Scattergl(
@@ -252,7 +241,7 @@ class Plotter:
                     hoverinfo="skip", showlegend=False
                 ))
 
-        # 3. Nur aktive Knoten plotten
+        #Nur aktive Knoten plotten
         if node_markers:
             x_n, y_n = [], []
             for n_id, ndata in structure.graph.nodes(data=True):
@@ -281,9 +270,6 @@ class Plotter:
         
         return fig
 
-    # ---------------------------
-    # ESO: Entferne Knoten (node_mask: numpy boolean array aligned with initial_node_ids)
-    # ---------------------------
     def eso_figure_2d(self, structure, node_mask, initial_node_ids, iter, n_rem, vol_frac, node_size=3):
         """
         Zeichnet die Struktur, filtert Knoten und Kanten die nicht mehr existieren.
@@ -352,7 +338,7 @@ class Plotter:
 
         fig = go.Figure()
 
-        # 2. ALLES in einen einzigen Trace packen
+        #ALLES in einen einzigen Trace packen
         fig.add_trace(go.Scatter3d(
             x=x_lines,
             y=y_lines,
@@ -361,7 +347,7 @@ class Plotter:
             line=dict(
                 width=5,
                 color=color_values, # Plotly mappt die Dichte-Werte auf die Farbskala
-                colorscale='Blues', # Oder 'Viridis', 'Greys' etc.
+                colorscale='Blues', 
                 showscale=False
             ),
             hoverinfo="skip"
