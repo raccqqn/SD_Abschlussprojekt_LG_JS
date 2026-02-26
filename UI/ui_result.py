@@ -1,8 +1,11 @@
 import streamlit as st
 import numpy as np
+import copy
 from src.solver_global import Solver
 from src.optimizerSimp import OptimizerSIMP
 
+import copy
+import streamlit as st
 
 def plot_optimization_results(structure, plotter):
     """
@@ -34,6 +37,8 @@ def plot_optimization_results(structure, plotter):
             plotter.body_undeformed(structure, linewidth=4)
         else:
             plotter.beam_undeformed(structure)
+        
+        st.caption("Zum Herunterladen auf das Kamera-Emoji im Plot klicken.", text_alignment="center")
 
     #Verformungs-Analyse    
     with tab2:
@@ -51,8 +56,13 @@ def plot_optimization_results(structure, plotter):
                           value=float(default_scale), key="res_scale_slider")
         
         fig_res = plotter.plot_result_comparison(structure, u_final, scale=scale)
-        st.plotly_chart(fig_res, width="stretch", key="final_comparison_plot")
-        
+        st.plotly_chart(fig_res, width="stretch", key="final_comparison_plot", config={                             #Bei einem st.download_button wird bei jedem Klick ein rerun ausgeführt.
+                            "toImageButtonOptions" : {                                                              #Erfahrungsgemäß muss man dadurch sehr lange warten, bis der Plot fertig ist. 
+                                "format": "png",                                                                    #Download wird nun direkt über den Plotly Grafen gemacht, mit angepassten FileNames. 
+                                "filename" : "verformungs_analyse",
+                                "scale" : 1}})
+        st.caption("Zum Herunterladen auf das Kamera-Emoji im Plot klicken.", text_alignment="center")              
+
     with tab3:
         st.write("#### Visualisierung der Feder-Kräfte")
         
@@ -60,8 +70,13 @@ def plot_optimization_results(structure, plotter):
         forces = structure.calc_element_forces(u_final)
 
         fig_forces = plotter.plot_colored_structure(structure, u_final, forces)
-        st.plotly_chart(fig_forces, width="stretch", key="spring_forces_plot")
-
+        st.plotly_chart(fig_forces, width="stretch", key="spring_forces_plot", config={
+                            "toImageButtonOptions" : {
+                                "format": "png",
+                                "filename" : "normalkraft_verteilung",
+                                "scale" : 1}})
+        st.caption("Zum Herunterladen auf das Kamera-Emoji im Plot klicken.", text_alignment="center")
+            
     with tab4:
         st.write("#### Visualisierung der Feder-Energien")
         
@@ -69,4 +84,10 @@ def plot_optimization_results(structure, plotter):
 
         fig_energy = plotter.plot_colored_structure(structure, u_final, energies, 
                                                     color_scheme="inferno", symmetric=False)
-        st.plotly_chart(fig_energy, width="stretch", key="spring_energies_plot")
+        st.plotly_chart(fig_energy, width="stretch", key="spring_energies_plot", 
+                        config={
+                            "toImageButtonOptions" : {
+                                "format": "png",
+                                "filename" : "feder_energie",
+                                "scale" : 1}})
+        st.caption("Zum Herunterladen auf das Kamera-Emoji im Plot klicken.", text_alignment="center")

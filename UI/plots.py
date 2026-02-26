@@ -121,7 +121,11 @@ class Plotter:
 
         if display:
             target = placeholder if placeholder else st
-            target.plotly_chart(fig, width="stretch")
+            target.plotly_chart(fig, width="stretch", config={
+                            "toImageButtonOptions" : {
+                                "format": "png",
+                                "filename" : "optimierte_2d_struktur",
+                                "scale" : 1}})
             
         return fig
 
