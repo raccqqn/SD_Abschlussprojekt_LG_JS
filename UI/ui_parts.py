@@ -63,7 +63,6 @@ def ui_storage_sidebar():
 def ui_pages_sidebar():
     """
     Automatischer Sidebar vom /pages Ordner wird deaktiviert und mit einem selber erstellen erstzt.
-    Dadurch werden manche Pages je nach Bedingung ausgegraut. 
     """
     st.sidebar.divider()
     st.sidebar.subheader("Navigation")
@@ -76,7 +75,7 @@ def ui_pages_sidebar():
         confirm = st.session_state.get("confirm_reset", False)
         
         if confirm:
-            st.warning("Die aktuelle Struktur wird gelöscht! Fortfahren?")
+            st.warning("Die aktuelle Struktur wird gelöscht, falls sie nicht gespeichert wurde! Fortfahren?")
             #Spalten für ja, nein festlegen
             col1, col2 = st.columns(2)
             with col1:
@@ -88,11 +87,12 @@ def ui_pages_sidebar():
             with col2:
                 if st.button("Nein"):
                     st.session_state["confirm_reset"] = False
+                    st.session_state["structure_got_saved"] = False
                     #Sonst muss Button 2 mal geklickt werden
                     st.rerun()
 
 
-def ui_pages_sidebar_from_structure():
+def ui_pages_sidebar_from_structure():                  #auch nicht mehr notwendig
     with st.sidebar:
         
         #st.page_link("Startseite.py", label = "Startseite", width = "stretch", disabled = True)
@@ -416,11 +416,3 @@ def ui_force_3d_fun_image():
     
     # Bild anzeigen
     st.image(img, caption=f"Ausgewählter Bereich: x: {start_force_length}-{end_force_length} + y: {start_force_width}-{end_force_width}")
-
-#def update_structure():
-#    struc = st.session_state.get("structure")
- #   struc.update_force()
-  #  struc.update_fixings()
-   # struc.assign_dofs()
-    #struc.assemble()
-    #return struc

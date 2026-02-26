@@ -120,4 +120,4 @@ class StructureManager():
         file_path = os.path.join(self.data_dir, f"{name}.npz")
         #Wenn existiert: Löschen
         if os.path.exists(file_path):
-                    os.remove(file_path)
+            os.remove(file_path)

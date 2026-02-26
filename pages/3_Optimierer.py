@@ -81,7 +81,7 @@ if st.session_state["lock_optimization"] == True:
     #Container vorbereiten
     plot_placeholder = plot_container.empty()
 
-    if option == "Eso" :                                            #Somit kann immer wieder auf das Original zurückgewiesen werden
+    if option == "ESO" :        
         Opt = OptimizerESO(struc)                                 
         opt = Opt.optimize(final_volume, aggressivity)              #Generator initialisieren, Werte werden über "yield" ausgegeben
 

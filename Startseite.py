@@ -4,9 +4,9 @@ from UI.ui_parts import sync_session_state_with_struc
 from src.structureManager import StructureManager
 from datetime import datetime
 
-st.session_state.clear()
-st.cache_data.clear()
-st.cache_resource.clear()
+#st.session_state.clear()
+#st.cache_data.clear()
+#st.cache_resource.clear()
 
 st.set_page_config("SWD Abschlussprojekt")
 
@@ -14,6 +14,10 @@ init_session_states()
 
 if "optimization_from_structure" not in st.session_state:
     st.session_state["optimization_from_structure"] = False
+if "confirm_deletion" not in st.session_state:
+    st.session_state["confirm_deletion"] = False
+if "delete_structure" not in st.session_state:
+    st.session_state["delete_structure"] = None
 
 st.image("resources/cover.png")
 
@@ -59,7 +63,6 @@ with st.expander("Vorhandene Struktur laden"):
                     st.session_state["optimization_from_structure"] = True
                     st.switch_page("pages/3_Optimierer.py")    #query_params gibt Info mit, woher man kommt bei Klick
                         
-                    
                     st.toast(f"✅ {selected_name} erfolgreich geladen!")
 
                     #Trigger setzen
@@ -67,9 +70,26 @@ with st.expander("Vorhandene Struktur laden"):
 
             with col2:
                 if st.button("Löschen", type="primary", width="stretch"):
-                    manager.delete(selected_name)
-                    st.toast(f"Projekt {selected_name} gelöscht.")
-                    #Neu laden
-                    st.rerun()
+                    st.session_state["confirm_deletion"] = True
+                    st.session_state["delete_structure"] = selected_name
+                confirm_del = st.session_state.get("confirm_deletion", False)
+                delete_structure = st.session_state.get("delete_structure")
+
+                if confirm_del:
+                    st.warning("_Ausgewählte Struktur wirklich löschen?_")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button("Ja"):
+                            manager.delete(delete_structure)
+                            st.session_state["confirm_deletion"] = False
+                            st.session_state["delete_structure"]= None
+                            #Neu laden
+                            st.rerun()
+
+                    with c2:
+                        if st.button("Nein"):
+                            st.session_state["confirm_deletion"] = False
+                            st.session_state["delete_structure"] = None
+                            st.rerun()
                     
     else: st.info("Keine gespeicherten Strukturen in der Datenbank gefunden!")
