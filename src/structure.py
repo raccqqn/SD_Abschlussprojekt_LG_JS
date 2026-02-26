@@ -220,6 +220,37 @@ class Structure:
 
         return rank >= self.dim
     
+    def calc_element_forces(self, u):
+        """
+        Berechnet die Normalkräte in allen Federn zufolge einer Verschiebung.
+        Gibt eine Liste der Kräfte in Reihenfolge der Edges zurück. 
+        """
+        forces = []
+
+        for _, _, data in self.graph.edges(data=True):
+            spring = data["spring"]
+
+            #Verschiebungen und Positionen der Nodes auslesen
+            u_i = u[spring.i.dof_indices]
+            u_j = u[spring.j.dof_indices]
+            pos_i = spring.i.pos
+            pos_j = spring.j.pos
+            
+            #Ursprüngliche Länge
+            L0 = spring.L
+
+            #Neue Positionen, neuen Abstand, Längenänderung berechnen
+            pos_i_new = pos_i + u_i
+            pos_j_new = pos_j + u_j
+            L_new = np.linalg.norm(pos_j_new - pos_i_new)
+            delta_L = L_new - L0
+
+            #Kraft berechnen: (delta_L * EA) / L0 = F
+            F = (delta_L * self.EA) / L0
+            forces.append(F)
+
+        return forces
+    
     def cleanup_simp(self, threshhold=0.05):
         """Entfernt unwichtige Federn und Knoten entsprechend der jeweiligen x-Werte"""
         

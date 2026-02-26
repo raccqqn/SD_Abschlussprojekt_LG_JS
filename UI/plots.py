@@ -500,6 +500,61 @@ class Plotter:
         )
         return fig
     
+    def plot_colored_structure(self, structure, u, vals, color_scheme="RdBu", symmetric=True):
+                        
+            #Trigger, Funktion funktioniert für 2D und 3D
+            is_3d = (structure.dim == 3)
+
+            #Top 96% als max benutzen, sonst wirkt Struktur verwaschen da Extreme zu viel ins Gewicht fallen
+            v_max = np.percentile(np.abs(vals), 96)
+            cmin, cmax = (-v_max, v_max) if symmetric else (float(np.min(vals)), float(np.max(values)))
+
+            #Farbewerte manuell mappen
+            def map_color(val):
+                norm = np.clip((val - cmin) / (cmax - cmin), 0, 1)
+                return plotly.colors.sample_colorscale(color_scheme, [norm])[0]
+
+            fig = go.Figure()
+            
+            for idx, (_, _, data) in enumerate(structure.graph.edges(data=True)):
+                if idx >= len(vals): 
+                    break
+                spring = data["spring"] 
+                val = float(vals[idx])
+                
+                #Positionen, Verformungen
+                p1 = spring.i.pos 
+                p2 = spring.j.pos
+                if u is not None:
+                    p1 = p1 + u[spring.i.dof_indices]
+                    p2 = p2 + u[spring.j.dof_indices]
+                
+                #Linien-Eigenschaften abhängig von Dimension festlegen
+                line_props = dict(color=([val, val] if is_3d else map_color(val)), width=4)
+                if is_3d: 
+                    line_props.update(colorscale=color_scheme, cmin=cmin, cmax=cmax)
+                
+                trace_type = go.Scatter3d if is_3d else go.Scatter
+                arg_dict = dict(x=[p1[0], p2[0]], y=[p1[1], p2[1]], mode="lines", line=line_props, 
+                                hoverinfo="text", text=f"Wert: {val:.2f}", showlegend=False)
+                
+                if is_3d: arg_dict["z"] = [p1[2], p2[2]]
+                fig.add_trace(trace_type(**arg_dict))
+            
+            #Linie zeichnen
+            fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(colorscale=color_scheme, cmin=cmin, 
+                                    cmax=cmax, showscale=True, colorbar=dict(title="Kraft (N)" if symmetric else "Energie", x=1.05)), showlegend=False))
+            #Layout anpassen
+            fig.update_layout(template="plotly_dark", margin=dict(l=0, r=0, t=40, b=0), 
+                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            
+            if is_3d: 
+                fig.update_layout(scene=dict(aspectmode="data", xaxis_visible=False, yaxis_visible=False, zaxis_visible=False))
+            else: 
+                fig.update_layout(xaxis=dict(scaleanchor="y", visible=False), yaxis=dict(autorange="reversed", visible=False))
+            
+            return fig
+    
     #Dimension der Struktur bestimmen
     def eso_figure(self, structure, node_mask, initial_node_ids, iter, n_removed, vol_frac):
         if structure.dim == 3:

@@ -77,7 +77,7 @@ def ui_pages_sidebar():
     with st.sidebar:
         if st.button("Zur Startseite", width = "stretch"):
             st.session_state["confirm_reset"] = True
-        st.caption("_Neue Struktur erstellen, aktuelle wird verworfen!_", text_alignment="center")
+        st.caption("_Neue Struktur erstellen, Aktuelle wird verworfen!_", text_alignment="center")
     
         #Wenn reset noch nicht bestätigt wurde: confirm True!
         confirm = st.session_state.get("confirm_reset", False)

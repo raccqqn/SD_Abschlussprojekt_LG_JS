@@ -23,7 +23,7 @@ def plot_optimization_results(structure, plotter):
     u_max = np.max(np.abs(u_final))
 
     #Zwei Tabs für finale Struktur, Verformung
-    tab1, tab2 = st.tabs(["Optimierte Struktur", "Verformungs-Analyse"])
+    tab1, tab2, tab3 = st.tabs(["Optimierte Struktur", "Verformungs-Analyse", "Normalkraft-Verteilung"])
     
     #Struktur plotten, Funktionen wiederverwenden, so werden auch Lager und Kräfte angezeigt
     with tab1:
@@ -51,3 +51,11 @@ def plot_optimization_results(structure, plotter):
         fig_res = plotter.plot_result_comparison(structure, u_final, scale=scale)
         st.plotly_chart(fig_res, width="stretch", key="final_comparison_plot")
         
+    with tab3:
+        st.write("### Visualisierung der Feder-Kräfte")
+        
+        #Federkräfte berechnen
+        forces = structure.calc_element_forces(u_final)
+
+        fig_forces = plotter.plot_colored_structure(structure, u_final, forces)
+        st.plotly_chart(fig_forces, width="stretch", key="spring_forces_plot")
