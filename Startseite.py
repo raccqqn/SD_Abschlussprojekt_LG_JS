@@ -1,14 +1,11 @@
 import streamlit as st
 from UI.state import init_session_states, init_default_session_states
-from UI.ui_parts import sync_session_state_with_struc
+from UI.ui_parts import sync_session_state_with_struc, set_bg_hack
 from src.structureManager import StructureManager
 from datetime import datetime
 
-#st.session_state.clear()
-#st.cache_data.clear()
-#st.cache_resource.clear()
-
 st.set_page_config("SWD Abschlussprojekt")
+set_bg_hack("resources/bg_picture.png")
 
 init_session_states()
 
@@ -19,7 +16,7 @@ if "confirm_deletion" not in st.session_state:
 if "delete_structure" not in st.session_state:
     st.session_state["delete_structure"] = None
 
-st.image("resources/cover.png")
+st.image("resources/logo_3.png")
 
 if st.button("Neue Struktur erstellen", width = "stretch"):
     init_session_states()

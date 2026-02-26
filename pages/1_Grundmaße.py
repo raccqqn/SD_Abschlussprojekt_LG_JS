@@ -1,5 +1,5 @@
 import streamlit as st
-from UI.state import init_session_states, init_remove_input_force_support
+from UI.state import init_session_states, init_remove_input_force_support, show_geometry_states
 from UI.ui_parts import ui_storage_sidebar, ui_geometry, ui_pages_sidebar
 from UI.geometry import build_structure_from_session_states
 from UI.plots import Plotter
@@ -20,9 +20,7 @@ ui_geometry()
 
 if st.session_state["ui_input_changed"] == True:    #Bei jeder Änderung der Geometrie, werden die gespeicherten Kräfte und Lager gelöscht
     init_remove_input_force_support()
-
-st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA)
-
+show_geometry_states()
 structure = build_structure_from_session_states()                          #Struktur wird gebaut, für den Plot
 
 #Working Structure in session_state speichern

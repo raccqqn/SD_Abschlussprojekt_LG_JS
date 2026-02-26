@@ -1,2 +1,6 @@
 [client]
 showSidebarNavigation = false
+[theme]
+base = "dark"
+blueBackgroundColor = "#01f7f732"    #BadgeBlau mit Design vom Logo anpassen
+blueTextColor = "#01F7F6"          

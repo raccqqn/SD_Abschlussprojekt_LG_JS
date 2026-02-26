@@ -1,11 +1,19 @@
 import streamlit as st
 import numpy as np
-from UI.state import init_max_values, init_all_y_values_values
+from UI.state import init_max_values, init_all_y_values_values, init_remove_input_force_support
 from src.structureManager import StructureManager 
 from datetime import datetime
 
 def ui_storage_sidebar():
     """Sidebar zum Speichern einer Struktur"""
+
+    #Logo einfügen - Achtung beim klick darauf werden alle Eingaben gelöscht 
+    if st.logo("resources/logo_1.png", icon_image="resources/logo_2_1.png"):
+        init_remove_input_force_support()
+        st.session_state.clear()
+        st.cache_data.clear()
+        st.cache_resource.clear()
+ 
     st.sidebar.subheader("Struktur speichern")
 
     with st.sidebar.expander("Aktuelle Struktur speichern", expanded=False):
@@ -416,3 +424,21 @@ def ui_force_3d_fun_image():
     
     # Bild anzeigen
     st.image(img, caption=f"Ausgewählter Bereich: x: {start_force_length}-{end_force_length} + y: {start_force_width}-{end_force_width}")
+
+import streamlit as st
+import base64
+
+def set_bg_hack(main_bg):
+    # Lade Bild und konvertiere es
+    bin_str = base64.b64encode(open(main_bg, 'rb').read()).decode()
+    
+    # CSS Stil definieren
+    page_bg_img = f'''
+    <style>
+    .stApp {{
+        background-image: url("data:image/png;base64,{bin_str}");
+        background-size: cover;
+    }}
+    </style>
+    '''
+    st.markdown(page_bg_img, unsafe_allow_html=True)

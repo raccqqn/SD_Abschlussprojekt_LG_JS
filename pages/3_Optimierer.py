@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-from UI.state import init_session_states
+from UI.state import init_session_states, show_geometry_states
 from UI.ui_parts import ui_storage_sidebar, ui_pages_sidebar
 from UI.ui_result import plot_optimization_results
 from UI.plots import Plotter
@@ -26,8 +26,7 @@ if "optimization_error" not in st.session_state:
 
 plotter = Plotter()
 
-st.write(st.session_state.length, st.session_state.width, st.session_state.depth, st.session_state.EA) #Zum Checken der Geometrie
-
+show_geometry_states()
 st.header("Optimierung der Struktur")
 c1,c2 = st.columns([0.3 , 0.7])
 with c1: option = st.selectbox("Verfahren wählen", ("ESO", "SIMP"), disabled=st.session_state.get("lock_optimization"))

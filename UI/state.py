@@ -48,3 +48,9 @@ def init_all_y_values_values():            #Maximum Werte für Auswahl aller Koo
         st.session_state["all_z_values"] = False
     if "all_y_values" not in st.session_state:
         st.session_state["all_y_values"] = False
+
+def show_geometry_states():
+    st.markdown(f":blue-badge[{st.session_state.length}]" 
+                f":blue-badge[{st.session_state.width}]" 
+                f":blue-badge[{st.session_state.depth}]" 
+                f":blue-badge[{st.session_state.EA}]")
