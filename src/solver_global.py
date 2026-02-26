@@ -1,5 +1,5 @@
 import numpy as np
-from structure import Structure
+from src.structure import Structure
 
 class Solver(): 
     """

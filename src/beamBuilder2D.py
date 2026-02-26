@@ -1,7 +1,5 @@
 import numpy as np
-from node import Node
-from structure import Structure
-from builder import Builder
+from src.builder import Builder
 
 class BeamBuilder2D(Builder):
     def __init__(self, length, width, EA):

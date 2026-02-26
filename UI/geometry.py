@@ -1,6 +1,6 @@
 import streamlit as st
-from beamBuilder2D import BeamBuilder2D
-from bodyBuilder3D import BodyBuilder3D
+from src.beamBuilder2D import BeamBuilder2D
+from src.bodyBuilder3D import BodyBuilder3D
 
 def apply_support_forces(builder):                          #Die Freiheitsgrade und Kräfte werden der Builder Klasse übergeben
     for pos, s in st.session_state["supports"].items():

@@ -1,11 +1,11 @@
 import streamlit as st
 import numpy as np
-from modules.state import init_session_states
-from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar
-from modules.ui_result import plot_optimization_results
-from plots import Plotter
-from optimizerESO import OptimizerESO
-from optimizerSimp import OptimizerSIMP
+from UI.state import init_session_states
+from UI.ui_parts import ui_storage_sidebar, ui_pages_sidebar
+from UI.ui_result import plot_optimization_results
+from UI.plots import Plotter
+from src.optimizerESO import OptimizerESO
+from src.optimizerSimp import OptimizerSIMP
 
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()

@@ -1,7 +1,7 @@
 import streamlit as st
-from modules.state import init_session_states, init_default_session_states
-from modules.ui_parts import sync_session_state_with_struc
-from structureManager import StructureManager
+from UI.state import init_session_states, init_default_session_states
+from UI.ui_parts import sync_session_state_with_struc
+from src.structureManager import StructureManager
 from datetime import datetime
 
 st.session_state.clear()
@@ -15,7 +15,7 @@ init_session_states()
 if "optimization_from_structure" not in st.session_state:
     st.session_state["optimization_from_structure"] = False
 
-st.image("cover.png")
+st.image("resources/cover.png")
 
 if st.button("Neue Struktur erstellen", width = "stretch"):
     init_session_states()

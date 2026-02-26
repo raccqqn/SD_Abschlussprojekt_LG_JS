@@ -1,11 +1,7 @@
 import streamlit as st
 import numpy as np
-from streamlit_elements import elements, mui
-from structure import Structure
-from modules.state import init_max_values, init_all_y_values_values
-from PIL import Image, ImageDraw
-
-from structureManager import StructureManager 
+from UI.state import init_max_values, init_all_y_values_values
+from src.structureManager import StructureManager 
 from datetime import datetime
 
 def ui_storage_sidebar():

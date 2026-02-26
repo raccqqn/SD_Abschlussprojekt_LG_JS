@@ -1,9 +1,8 @@
 import streamlit as st
-from modules.state import init_session_states
-from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
-from modules.geometry import build_structure_from_session_states
-from structure import Structure
-from plots import Plotter
+from UI.state import init_session_states
+from UI.ui_parts import ui_storage_sidebar, ui_pages_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
+from UI.geometry import build_structure_from_session_states
+from UI.plots import Plotter
 
 import streamlit as st
 

@@ -1,8 +1,8 @@
 import networkx as nx
 import numpy as np
 
-from node import Node
-from spring import Spring
+from src.node import Node
+from src.spring import Spring
 
 class Structure:
 

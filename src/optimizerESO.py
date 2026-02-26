@@ -1,7 +1,7 @@
 import numpy as np
 import networkx as nx
-from structure import Structure
-from solver_global import Solver
+from src.structure import Structure
+from src.solver_global import Solver
 
 class OptimizerESO():
 

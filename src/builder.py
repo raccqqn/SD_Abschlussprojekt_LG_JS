@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from structure import Structure
-from node import Node
+from src.structure import Structure
+from src.node import Node
 
 class Builder(ABC):
     """

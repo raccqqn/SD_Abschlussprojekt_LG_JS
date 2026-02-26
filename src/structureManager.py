@@ -2,7 +2,7 @@ import os
 import numpy as np
 from datetime import datetime
 from tinydb import TinyDB, Query
-from structure import Structure
+from src.structure import Structure
 
 class StructureManager():
     """
@@ -10,7 +10,7 @@ class StructureManager():
     Informationen werden in TinyDB im JSON-Format gespeichert, Daten im binären Format in .npz  
     """
 
-    def __init__(self, path="structure_storage.json", data_dir="structure_data"):
+    def __init__(self, path="data/structure_storage.json", data_dir="data/structure_data"):
         #Database initialisieren, Tabelle "Structures" laden
         self.db = TinyDB(path)                  
         self.table = self.db.table("structures")
