@@ -1,18 +1,19 @@
 import streamlit as st
-from modules.state import init_session_states, init_remove_input_force_support, init_default_session_states
+from modules.state import init_session_states, init_remove_input_force_support
 from modules.ui_parts import ui_storage_sidebar, ui_geometry, ui_pages_sidebar
 from modules.geometry import build_structure_from_session_states
 from plots import Plotter
 
-ui_pages_sidebar()
-
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
+ui_pages_sidebar()
+
 init_session_states()                               #Notwendig, damit bei einem refresh der page die Daten geladen werden
 
 
 st.header("Grundmaße definieren")
-st.write(f"Die gewünschten Paramter eingeben und bestätigen. _Ein zu großes 3D Modell lässt sich nicht mehr gut lösen._")
+st.write(f"Die gewünschten Parameter eingeben und bestätigen.")
+st.write("_Sehr große Strukturen können aufgrund begrenzter Arbeitsspeicherkapazität und hoher Rechenzeit nicht mehr optimiert werden._")
 
 plotter = Plotter()
 ui_geometry()

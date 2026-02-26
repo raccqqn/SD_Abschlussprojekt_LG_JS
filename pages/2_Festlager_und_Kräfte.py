@@ -1,16 +1,15 @@
 import streamlit as st
-from modules.state import init_session_states, init_remove_input_force_support
-from modules.ui_parts import ui_pages_sidebar_from_structure, ui_storage_sidebar, ui_pages_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
+from modules.state import init_session_states
+from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar, ui_festlager_2d, ui_festlager_3d, ui_force_2D, ui_force_3D, ui_force_2d_fun, ui_force_3D_fun, ui_force_expander, ui_festlager_expander
 from modules.geometry import build_structure_from_session_states
 from structure import Structure
 from plots import Plotter
-from streamlit_drawable_canvas import st_canvas
 
 import streamlit as st
 
-ui_pages_sidebar()
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
+ui_pages_sidebar()
 init_session_states()           #Notwendig, damit bei einem refresh der page die Daten geladen werden
 plotter = Plotter()
 
@@ -19,7 +18,7 @@ st.write(st.session_state.length, st.session_state.width, st.session_state.depth
 
 
 st.header("Lager und Kraft auswählen")
-st.write("Lager sollten sinnvoll gewählt werden.")
+st.write("Für ESO- und 3D-Analysen sollten Lagerbedinungen statisch sinnvoll definiert werden.")
 
 tab1, tab2 = st.tabs(["**Lager**", "**Kraft**"])
 

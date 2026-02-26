@@ -17,7 +17,7 @@ if "optimization_from_structure" not in st.session_state:
 
 st.image("cover.png")
 
-if st.button("Neue Modellierung starten", width = "stretch"):
+if st.button("Neue Struktur erstellen", width = "stretch"):
     init_session_states()
     init_default_session_states()
     st.switch_page("pages/1_Grundmaße.py")

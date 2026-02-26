@@ -1,21 +1,16 @@
 import streamlit as st
 import numpy as np
-import math
-from modules.state import init_session_states, init_default_session_states
-from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar_from_structure, ui_pages_sidebar
+from modules.state import init_session_states
+from modules.ui_parts import ui_storage_sidebar, ui_pages_sidebar
 from modules.ui_result import plot_optimization_results
 from plots import Plotter
 from optimizerESO import OptimizerESO
 from optimizerSimp import OptimizerSIMP
 
-#if st.session_state.get("optimization_from_structure", True):
-#    ui_pages_sidebar_from_structure()
-#else:
-#    ui_pages_sidebar()
-
-ui_pages_sidebar()
 #Speichern der Struktur zu jedem Zeitpunkt möglich
 ui_storage_sidebar()
+ui_pages_sidebar()
+
 init_session_states()   #Notwendig, damit bei einem refresh der page die Daten geladen werden
 
 
@@ -35,16 +30,16 @@ st.write(st.session_state.length, st.session_state.width, st.session_state.depth
 
 st.header("Optimierung der Struktur")
 c1,c2 = st.columns([0.3 , 0.7])
-with c1: option = st.selectbox("Optimierer wählen", ("Eso", "SIMP"), disabled=st.session_state.get("lock_optimization"))
+with c1: option = st.selectbox("Verfahren wählen", ("ESO", "SIMP"), disabled=st.session_state.get("lock_optimization"))
 with c2: 
-    final_volume = st.slider("Gewünschtes Zielvolumen in %", min_value = 0.0, max_value = 1.0, value = 0.6, format="percent", disabled=st.session_state["lock_optimization"])
+    final_volume = st.slider("Gewünschtes Zielvolumen in %", min_value = 0.0, max_value = 1.0, value = 0.4, format="percent", disabled=st.session_state["lock_optimization"])
 
-    if option == "Eso":
-        with c1: st.write("Optimiert anhand der Federenergien")
+    if option == "ESO":
+        with c1: st.write("Iteratives Entfernen energiearmer Knoten")
         with c2: aggressivity = st.slider("Aggressivität des Entfernens", min_value = 0.0, max_value = 1.0, value = 0.4, disabled=st.session_state["lock_optimization"])
         
     else:
-        with c1: st.write("Optimiert anhand der Nachgiebigkeit der einzelnen Federn")
+        with c1: st.write("Materialverteilung zur Minimierung der Nachgiebigkeit")
         with c2:
             cc1, cc2, cc3 = st.columns(3)
             with cc1: 
@@ -61,7 +56,7 @@ with c2:
                     filter_radius = filter_input
             
             with cc3: 
-                threshold_input = st.radio("Clean-Up Intensität", ["Niedrig", "Mittel", "Hoch"], disabled=st.session_state["lock_optimization"])
+                threshold_input = st.radio("Energie-Schwellenwert", ["Niedrig", "Mittel", "Hoch"], index=1, disabled=st.session_state["lock_optimization"])
                 if threshold_input == "Niedrig":
                     threshold = 0.01
                 elif threshold_input == "Mittel":
@@ -148,5 +143,5 @@ if st.session_state.get("optimization_done"):
 
 st.divider()
 
-if st.button("Zurück", width="stretch"):
+if st.button("Randbedingungen bearbeiten", width="stretch"):
     st.switch_page("pages/2_Festlager_und_Kräfte.py")

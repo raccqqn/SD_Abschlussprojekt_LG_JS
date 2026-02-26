@@ -10,7 +10,6 @@ from datetime import datetime
 
 def ui_storage_sidebar():
     """Sidebar zum Speichern einer Struktur"""
-    st.sidebar.divider()
     st.sidebar.subheader("Struktur speichern")
 
     with st.sidebar.expander("Aktuelle Struktur speichern", expanded=False):
@@ -70,14 +69,32 @@ def ui_pages_sidebar():
     Automatischer Sidebar vom /pages Ordner wird deaktiviert und mit einem selber erstellen erstzt.
     Dadurch werden manche Pages je nach Bedingung ausgegraut. 
     """
+    st.sidebar.divider()
+    st.sidebar.subheader("Navigation")
     with st.sidebar:
-        if st.button("Zurück zur Hauptseite", width = "stretch"):
-            st.session_state.clear()
-            st.cache_data.clear()
-            st.cache_resource.clear()
-            st.switch_page("Startseite.py")
-        st.caption("um eine neue Struktur zu erstellen", text_alignment="center")
+        if st.button("Zur Startseite", width = "stretch"):
+            st.session_state["confirm_reset"] = True
+        st.caption("_Neue Struktur erstellen, aktuelle wird verworfen!_", text_alignment="center")
     
+        #Wenn reset noch nicht bestätigt wurde: confirm True!
+        confirm = st.session_state.get("confirm_reset", False)
+        
+        if confirm:
+            st.warning("Die aktuelle Struktur wird gelöscht! Fortfahren?")
+            #Spalten für ja, nein festlegen
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Ja"):
+                    st.session_state.clear()
+                    st.cache_data.clear()
+                    st.cache_resource.clear()
+                    st.switch_page("Startseite.py")
+            with col2:
+                if st.button("Nein"):
+                    st.session_state["confirm_reset"] = False
+                    #Sonst muss Button 2 mal geklickt werden
+                    st.rerun()
+
 
 def ui_pages_sidebar_from_structure():
     with st.sidebar:
@@ -256,7 +273,7 @@ def ui_festlager_expander():
 
 def ui_force_2D():
     st.subheader("Kraft bestimmen - klassisch")
-    st.write("Koordinaten der angreifenden Kraft bestimmen und angreifende Kraftstärke definieren.")
+    st.write("Angriffspunkt festlegen und zugehörigen Kraftvektor definieren.")
     
     c1,c2,c3,c4 = st.columns(4)
     with c1: x = st.number_input("x", min_value = 0, max_value = st.session_state["length"] - 1 , value = 0)       #Standard Koordinaten Eingabe
@@ -273,14 +290,14 @@ def ui_force_2D():
     
 def ui_force_2d_fun():
     st.subheader("Kraftbereich bestimmen")
-    st.write("Vertikale Kraftstärke bestimmen und mit dem Regler den Kraftangriffsbereich auf der x-Achse wählen. \
-             _Der Angriff passiert immer oben auf der Balkenoberfläche._")
+    st.write("Kraftvektor festlegen und mit dem Regler den Kraftangriffsbereich auf der x-Achse wählen. \
+             _Die Kraft greift immer an der Außenkante an._")
     c1, c2 =st.columns(2)
     with c1: force_x_plus = st.number_input("Fx", value = 0, key ="force_fun_x")
     with c2: force_y_plus = st.number_input("Fy", value = 0, key="force_fun_y") 
 
     options = list(range(st.session_state["length"]))
-    start_force, end_force = st.select_slider("Kraftangriffsbereich auswählen", options = options, value = [0, st.session_state["length"]-1])
+    start_force, end_force = st.select_slider("Kraftangriffsbereich wählen", options = options, value = [0, st.session_state["length"]-1])
     add2 = st.button("Hinzufügen", key = "add_2", width="stretch")
     st.write(start_force, end_force)
 
@@ -292,7 +309,7 @@ def ui_force_2d_fun():
                 st.session_state["forces"][pos] = {"pos" : pos, "vec" : f_value}
 
 def ui_force_expander():
-    with st.expander("Angreifende Kraft"):
+    with st.expander("Angreifende Kräfte"):
         pos_del = None
         for i, (pos, s) in enumerate(st.session_state["forces"].items()):
             c1, c2 = st.columns([0.8, 0.2])
@@ -312,7 +329,7 @@ def ui_force_expander():
 
 def ui_force_3D():
     st.subheader("Kraft bestimmen - Klassisch")
-    st.write(f"Die gewünschte Position definieren und den Krafteinfluss an dieser Koordinate wählen.")
+    st.write(f"Angriffspunkt festlegen und zugehörigen Kraftvektor definieren.")
     
     c1,c2,c3 = st.columns(3)
 
@@ -333,9 +350,9 @@ def ui_force_3D():
         st.session_state["forces"][pos] = {"pos" : pos, "vec": f_value}
 
 def ui_force_3D_fun():
-    st.subheader("Kraft bestimmen - Slider")
-    st.write(f"Die Slider können auf den bestimmten Bereich gelegt werden, bei welchem die Kraft angreifen soll.\
-             _Im Bild ist der gewählte Bereich rot markiert._")
+    st.subheader("Kraftbereich bestimmen")
+    st.write(f"Mit den Slidern den Kraftangriffsbereich festlegen. Der gewählte Bereich ist rot markiert.\
+             _Die Kraft greift immer an der Oberfläche an._")
     
     c1, c2, c3 = st.columns(3)
     with c1: force_x_plus = st.number_input("Fx", value = 0, key = "x_force_plus")
