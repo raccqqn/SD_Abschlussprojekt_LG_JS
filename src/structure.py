@@ -220,6 +220,34 @@ class Structure:
 
         return rank >= self.dim
     
+    def calc_element_energies(self, u):
+        """
+        Berechnung der Feder-Energien zufolge einer Verformung.
+        Gibt Array zurück.
+        """
+
+        springs = [self.graph[i_id][j_id]["spring"] for i_id, j_id in self.graph.edges]
+        element_energies = np.zeros(len(springs))                                          
+
+        #Über alle Springs in Graph iterieren, i_id: Startpunkt, j_id: Endpunkt (Nodes)
+        for idx, spring in enumerate(springs):          
+
+            #Verschiebung an angehängten Nodes bestimmen
+            u_nds = np.concatenate([u[spring.i.dof_indices], u[spring.j.dof_indices]]) 
+
+            #Skalierte Globale Steifigkeit der Feder abrufen
+            #Hier K_0 -> Fester Referenzwert für das Material. Potenzial des Stabes Last zu tragen, falls er voll ausgebildet wäre.
+            #K_0 nutzen, da sonst "tote" Stäbe nie wiederbelebt werden könnten
+            Ko = spring.K_global(use_simp = False)                                              
+
+            #Verformungsenergie der Feder berechnen
+            e_spring = 0.5 * u_nds.T @ Ko @ u_nds
+
+            #In Dictionary speichern
+            element_energies[idx] = e_spring
+        
+        return element_energies
+    
     def calc_element_forces(self, u):
         """
         Berechnet die Normalkräte in allen Federn zufolge einer Verschiebung.

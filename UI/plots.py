@@ -507,7 +507,8 @@ class Plotter:
 
             #Top 96% als max benutzen, sonst wirkt Struktur verwaschen da Extreme zu viel ins Gewicht fallen
             v_max = np.percentile(np.abs(vals), 96)
-            cmin, cmax = (-v_max, v_max) if symmetric else (float(np.min(vals)), float(np.max(values)))
+            #Wenn Daten symmetrisch sind (wie bei Kräften) -/+ Limit, sonst max und min
+            cmin, cmax = (-v_max, v_max) if symmetric else (float(np.min(vals)), float(np.max(vals)))
 
             #Farbewerte manuell mappen
             def map_color(val):

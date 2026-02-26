@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 from src.solver_global import Solver
+from src.optimizerSimp import OptimizerSIMP
 
 
 def plot_optimization_results(structure, plotter):
@@ -23,11 +24,12 @@ def plot_optimization_results(structure, plotter):
     u_max = np.max(np.abs(u_final))
 
     #Zwei Tabs für finale Struktur, Verformung
-    tab1, tab2, tab3 = st.tabs(["Optimierte Struktur", "Verformungs-Analyse", "Normalkraft-Verteilung"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Optimierte Struktur", "Verformungs-Analyse", 
+                                      "Normalkraft-Verteilung", "Feder-Energien"])
     
     #Struktur plotten, Funktionen wiederverwenden, so werden auch Lager und Kräfte angezeigt
     with tab1:
-        st.write("### Lager und Kräfte am optimierten Bauteil")
+        st.write("#### Lager und Kräfte am optimierten Bauteil")
         if structure.dim == 3:
             plotter.body_undeformed(structure)
         else:
@@ -35,7 +37,7 @@ def plot_optimization_results(structure, plotter):
 
     #Verformungs-Analyse    
     with tab2:
-        st.write("### Vergleich: Unverformt / Verformt")
+        st.write("#### Vergleich: Unverformt / Verformt")
         
         #Standard-Skalierung abhängig von Länge, Verformung bestimmen
         length = st.session_state.get("length", 1.0)
@@ -52,10 +54,19 @@ def plot_optimization_results(structure, plotter):
         st.plotly_chart(fig_res, width="stretch", key="final_comparison_plot")
         
     with tab3:
-        st.write("### Visualisierung der Feder-Kräfte")
+        st.write("#### Visualisierung der Feder-Kräfte")
         
         #Federkräfte berechnen
         forces = structure.calc_element_forces(u_final)
 
         fig_forces = plotter.plot_colored_structure(structure, u_final, forces)
         st.plotly_chart(fig_forces, width="stretch", key="spring_forces_plot")
+
+    with tab4:
+        st.write("#### Visualisierung der Feder-Energien")
+        
+        energies = structure.calc_element_energies(u_final)
+
+        fig_energy = plotter.plot_colored_structure(structure, u_final, energies, 
+                                                    color_scheme="inferno", symmetric=False)
+        st.plotly_chart(fig_energy, width="stretch", key="spring_energies_plot")

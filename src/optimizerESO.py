@@ -14,24 +14,18 @@ class OptimizerESO():
     def calc_node_energy(self, u):
         node_ids = list(self.structure.graph.nodes())                           
         ids_to_idx = {node_id: i for i, node_id in enumerate(node_ids)}         #Node ID's nummerieren und Index in Dict speichern
+        #Feder-Energien berechnen
+        element_energies = self.structure.calc_element_energies(u)
+        #Neuen Vektor für Knoten-Energien erstellen
         node_energies = np.zeros(len(node_ids))
 
-        #Über alle Springs in Graph iterieren, i_id: Startpunkt, j_id: Endpunkt (Nodes)
-        for i_id, j_id, data in self.structure.graph.edges(data=True):          
-            spring = data["spring"]
-
-            #Verschiebung an angehängten Nodes bestimmen
-            u_nds = np.concatenate([u[spring.i.dof_indices], u[spring.j.dof_indices]]) 
-
-            #Globale Steifigkeit der Feder abrufen
-            Ko = spring.K_global(use_simp = False)                                              
-
-            #Verformungsenergie der Feder berechnen
-            e_spring = 0.5 * u_nds.T @ Ko @ u_nds
+        #Über alle Edges im Graph iterieren, i_id: Startpunkt, j_id: Endpunkt (Nodes)
+        #Edge-ID's und Energien über zip() verknüpfen
+        for (i_id, j_id), energy in zip(self.structure.graph.edges(), element_energies):        
 
             #Zu entsprechenden Nodes dazuaddieren
-            node_energies[ids_to_idx[i_id]] += e_spring
-            node_energies[ids_to_idx[j_id]] += e_spring
+            node_energies[ids_to_idx[i_id]] += energy / 2
+            node_energies[ids_to_idx[j_id]] += energy / 2
         
         return node_energies
 
@@ -149,7 +143,6 @@ class OptimizerESO():
             yield {
                 "iter": c,
                 "node_mask": mask,
-                "energies": energy,
                 "remaining_nodes": new_count,
                 "n_removed": n_removed,
                 "vol_frac": self.structure.graph.number_of_nodes() / self.inital_nodes

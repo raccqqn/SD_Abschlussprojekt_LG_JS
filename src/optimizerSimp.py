@@ -29,30 +29,6 @@ class OptimizerSIMP():
         #Neighbor-List wird später einmalig berechnet
         self.neighbor_list = None         
 
-
-    def calc_element_energies(self, u):
-        
-        element_energies = np.zeros(len(self.springs))                                          
-
-        #Über alle Springs in Graph iterieren, i_id: Startpunkt, j_id: Endpunkt (Nodes)
-        for idx, spring in enumerate(self.springs):          
-
-            #Verschiebung an angehängten Nodes bestimmen
-            u_nds = np.concatenate([u[spring.i.dof_indices], u[spring.j.dof_indices]]) 
-
-            #Skalierte Globale Steifigkeit der Feder abrufen
-            #Hier K_0 -> Fester Referenzwert für das Material. Potenzial des Stabes Last zu tragen, falls er voll ausgebildet wäre.
-            #K_0 nutzen, da sonst "tote" Stäbe nie wiederbelebt werden könnten
-            Ko = spring.K_global(use_simp = False)                                              
-
-            #Verformungsenergie der Feder berechnen
-            e_spring = 0.5 * u_nds.T @ Ko @ u_nds
-
-            #In Dictionary speichern
-            element_energies[idx] = e_spring
-        
-        return element_energies
-
     def compute_sensitivities(self, energies):
         """
         Compliance-Optimierung: Compliance = Nachgiebigkeit. Ideal, da ein Wert für die Nachgiebigkeit in Lastrichtung, Steifigkeit ungeeignet
@@ -201,7 +177,7 @@ class OptimizerSIMP():
             solver = Solver(self.structure)
             u = solver.solve()
 
-            ee = self.calc_element_energies(u)
+            ee = self.structure.calc_element_energies(u)
 
             sens = self.compute_sensitivities(ee)
 
@@ -224,8 +200,6 @@ class OptimizerSIMP():
             yield {
                 "iter": it,
                 "x": x_vals,
-                #ee ist Array, ohne copy wird auf den selben Speicher verwiesen, kritisch!
-                "energies": ee.copy(),
                 #"volume": np.sum(x_vals * self.L_vals),
                 "frac": np.sum(x_vals * self.L_vals) / self.V_total,                                                        
                 "compliance": compliance
