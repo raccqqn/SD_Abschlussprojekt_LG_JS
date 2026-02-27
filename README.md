@@ -1,7 +1,7 @@
 # SD_Abschlussprojekt_LG_JS
 ### Joachim Spitaler und Leonie Graf
 
-Im Rahmen des Abschlussprojekts im dritten Semester des Studiengangs Mechatronik im Fach Softwaredesign wurde eine Applikation zur Modellierung, Analyse und Optimierung eines zwei- und dreidimensionalen Körpers entwickelt. Ziel ist es, die Materialverteilung des Bauteils zu optimieren, aufgrund von Randbedingungen und den darauf einwirkenden Kräften.
+Im Rahmen des Abschlussprojekts in der Vorlesung Softwaredesign (3. Semester Mechatronik) wurde eine Applikation zur Modellierung und Optimierung zwei- und dreidimensionaler Strukturen entwickelt. Das Hauptziel liegt in der topologischen Optimierung der Materialverteilung, um unter Berücksichtigung definierter Randbedingungen und Lastszenarien eine maximale Effizienz bzw. Steifigkeit zu erreichen.
 
 # Installation und Ausführung
 
@@ -94,7 +94,7 @@ Mit den Einstellungen ```Zielvolumen = 30%, Iterationen = 30, Filter = 1.5, Clea
 
 ### 3D ESO Optimierung
 
-Eine unzureichende Lagerung wird beim ESO Optimierer nicht mit einer Warnmeldung abgefangen. Bei korrekten Randbedingungen werden jedoch sehr gute Ergebnisse geliefert. Mit Optimierungswerten von ```Zielvolumen = 65%, Aggressivität = 0.4```, ergibt sich die folgende Struktur, dargestellt anhand der Federnergien-Analyse. 
+Eine unzureichende Lagerung wird beim ESO Optimierer nicht mit einer Warnmeldung abgefangen. Bei korrekten Randbedingungen werden jedoch sehr gute Ergebnisse geliefert. Mit Optimierungswerten von ```Zielvolumen = 65%, Aggressivität = 0.4```, ergibt sich die folgende Struktur, dargestellt anhand der Federenergien-Analyse. 
 
 <div align="center">
     <img src="resources/ESO_3D.png" width="70%">  
