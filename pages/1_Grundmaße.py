@@ -22,7 +22,7 @@ ui_geometry()
 if st.session_state["ui_input_changed"] == True:    #Bei jeder Änderung der Geometrie, werden die gespeicherten Kräfte und Lager gelöscht
     init_remove_input_force_support()
 show_geometry_states()
-structure = build_structure_from_session_states()                          #Struktur wird gebaut, für den Plot
+structure = build_structure_from_session_states()   #Struktur wird gebaut, für den Plot
 
 #Working Structure in session_state speichern
 st.session_state["structure"] = structure

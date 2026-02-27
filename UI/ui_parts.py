@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import base64   # Für Hintergrundbild
-from UI.state import init_max_values, init_all_y_values_values, init_remove_input_force_support
+from UI.state import init_remove_input_force_support
 from src.structureManager import StructureManager 
 from datetime import datetime
 
@@ -72,6 +72,7 @@ def ui_storage_sidebar():
 def ui_pages_sidebar():
     """
     Automatischer Sidebar vom /pages Ordner wird deaktiviert und mit einem eigens erstellen ersetzt.
+    Somit kann das Verhalten besser gesteuert werden. 
     """
     st.sidebar.divider()
     st.sidebar.subheader("Navigation")
@@ -101,7 +102,7 @@ def ui_pages_sidebar():
                     st.rerun()
 
 
-def set_bg_hack(main_bg):       #Quelle:  https://discuss.streamlit.io/t/how-do-i-use-a-background-image-on-streamlit/5067
+def set_bg_hack(main_bg):       #Quelle: https://discuss.streamlit.io/t/how-do-i-use-a-background-image-on-streamlit/5067
     bin_str = base64.b64encode(open(main_bg, 'rb').read()).decode()
     
     page_bg_img = f'''

@@ -31,6 +31,7 @@ def ui_festlager_2d():
             x = x_input
 
     with c2: 
+        #Eingabe Feld für y-Wert
         y_input = st.number_input("y", min_value = 0, max_value = st.session_state["width"] - 1, value = 0, key = "y_sup", disabled=st.session_state["y_max"])
         y_max = st.checkbox("Maximaler y-Wert", key = "y_max", on_change=sync_y_max_value)
 
@@ -65,7 +66,7 @@ def ui_festlager_3d():
             x = x_input
 
     with c2: 
-        #Die Input Widgets (checkbox/toggle) werden je nach gewählten Widget deaktiviert mit disabled =
+        #Die Input Widgets (checkbox/toggle) werden je nach gewählten Widget deaktiviert mit "disabled = ""
         y_input = st.number_input("y", min_value = 0, max_value = st.session_state["width"] - 1, value = 0, key = "y_sup", disabled = st.session_state["all_y_values"] or st.session_state["y_max"] )
         y_max = st.checkbox("Maximaler y-Wert", key = "y_max", on_change=sync_y_max_value, disabled=st.session_state["all_y_values"] )
         all_y_values = st.toggle("Alle y-Werte", value = False, key = "all_y_values", disabled = st.session_state["y_max"])
