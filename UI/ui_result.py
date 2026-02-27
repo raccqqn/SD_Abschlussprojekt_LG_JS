@@ -38,7 +38,7 @@ def plot_optimization_results(structure, plotter):
         else:
             plotter.beam_undeformed(structure, linewidth = 3, line_color="#3f91cc") ##1f77b4
         
-        st.caption("Zum Herunterladen auf das Kamera-Emoji im Plot klicken.", text_alignment="center")
+        st.caption("Zum Herunterladen auf das Kamera-Symbol im Plot klicken.", text_alignment="center")
 
     #Verformungs-Analyse    
     with tab2:
