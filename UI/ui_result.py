@@ -34,7 +34,7 @@ def plot_optimization_results(structure, plotter):
     with tab1:
         st.write("#### Lager und Kräfte am optimierten Bauteil")
         if structure.dim == 3:
-            plotter.body_undeformed(structure, linewidth = 3, line_color="#367aab")
+            plotter.body_undeformed(structure, linewidth = 2, line_color="#e5e5e5")
         else:
             plotter.beam_undeformed(structure, linewidth = 3, line_color="#3f91cc") ##1f77b4
         

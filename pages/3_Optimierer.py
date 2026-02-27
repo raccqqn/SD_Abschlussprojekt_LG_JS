@@ -139,7 +139,7 @@ if st.session_state["optimization_error"]:
                 Entweder SIMP-Optimierung mit Filter machen, Lagerungen ändern oder ESO-Optimierer nutzen.")
     else:
         st.error("Eine SIMP-Optimierung ist aufgrund der derzeitigen Lagerung nicht möglich. \
-                Entweder Lagerungen an die Seite setzen oder ESO-Optimierer nutzen.")
+                Statisch bestimmte Lagerung [(XYZ), (YZ)] empfohlen!")
     if st.button("Fehlermeldung schließen", type="primary", width="stretch"):
         st.session_state["optimization_error"] = False
         st.rerun()
