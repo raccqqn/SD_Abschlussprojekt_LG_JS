@@ -75,10 +75,10 @@ class Plotter:
             #Dictionary für die verschiedenen Kategorien mit Klarnamen für die Legende
             node_groups = {
                 "Knoten":        {"x": [], "y": [], "color": "#1f77b4", "symbol": "circle", "size": node_size +1},
-                "Kraftangriff":  {"x": [], "y": [], "color": "red",     "symbol": "circle", "size": node_size + 4},
-                "Festlager (XY)":{"x": [], "y": [], "color": "green", "symbol": "square", "size": node_size + 8},
-                "Loslager (X)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-up", "size": node_size + 11},
-                "Loslager (Y)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-down", "size": node_size + 11},
+                "Kraftangriff":  {"x": [], "y": [], "color": "red",     "symbol": "circle", "size": node_size + 6},
+                "Festlager (XY)":{"x": [], "y": [], "color": "green", "symbol": "square", "size": node_size + 10},
+                "Loslager (X)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-up", "size": node_size + 13},
+                "Loslager (Y)":  {"x": [], "y": [], "color": "green", "symbol": "triangle-down", "size": node_size + 13},
             }
 
             for _, ndata in beam.graph.nodes(data=True):
