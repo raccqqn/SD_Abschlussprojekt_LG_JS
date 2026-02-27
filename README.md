@@ -1,27 +1,25 @@
 # SD_Abschlussprojekt_LG_JS
 ### Joachim Spitaler und Leonie Graf
 
-Für das Abschlussprojekt im 3. Semester Mechatronik in Softwaredesign wurde eine Anwendung erstellt, die die Materialverteilung eines Balkens optimiert. Die Geometrien, Randbedingungen und Lasten werden in der Applikation gesetzt und die Optimierung geschieht in Anlehnung an die FEM-Methode. 
-
+Im Rahmen des Abschlussprojekts im dritten Semester des Studiengangs Mechatronik im Fach Softwaredesign wurde eine Applikation zur Modellierung, Analyse und Optimierung eines zwei- und dreidimensionalen Körpers entwickelt. Ziel ist es, die Materialverteilung des Bauteils zu optimieren, aufgrun von Randbedingungen und den darauf wirkenden Kräften.
 
 
 ## Minimalanforderung
 
 Die Streamlit Seite kann durch das Ausführen von ```streamlit run .\Startseite.py``` im Terminal geladen werden. Die definierten Minimalanforderungen wurden zur Gänze erfüllt und befinden sich nachfolgend aufgelistet.
 
-- Programmiert mit Python und User Interface umgesetzt mit streamlit.
-- Die Geometrie eines beliebigen 2D Balkens und 3D Körpers wird durch das Eingabefeld definiert. Alle nachfolgenden Funktionen werden automatisch an die gewählte Dimension angepasst. 
+- Programmierung in Python, Benutzeroberfläche umgesetzt mit Streamlit.
+- Die Geometrie eines beliebigen 2D-Balkens oder 3D-Körpers wird über ein Eingabefeld definiert. Alle nachfolgenden Funktionen werden automatisch an die gewählte Dimension angepasst.
 - Randbedingungen und Kräfte können an jedem Massepunkt der Ausgangsstruktur platziert werden.
-- Die Struktur wird bereits beim Definieren der Maße, beim Wählen der Lager und beim Ansetzen der Kräfte dargestellt. Bei der Optimierung erscheint ein Plot nach jeder Iteration und die resultierende Verschiebung wird anschließend dargestellt. 
-- Struktur kann zu jedem Zeitpunkt gespeichert werden. Durch das Speichern der Randbedingungen und des Optimierungszustandes ist ein späteres Laden und Anpassen der Konfiguration problemlos möglich. 
+- Die Struktur wird bereits bei der Definition der Abmessungen, bei der Wahl der Lager sowie beim Ansetzen der Kräfte visualisiert. Während der Optimierung erscheint nach jeder Iteration ein Plot; anschließend wird die resultierende Verschiebung dargestellt. 
+- Die Struktur kann jederzeit gespeichert werden. Durch das Speichern der Randbedingungen und des Optimierungszustands ist ein späteres Laden und Anpassen der Konfiguration problemlos möglich. 
 - Die Struktur besteht aus einem Knoten-Federn System, wodurch das FEM Prinzip angewendet ist. 
 - Verschiedene Überprüfungen und Fehlermeldungen während der Optimierung vermeiden statisch instabile Systeme. 
-- Die Verwendung von Plotly als Visualisierungs-Lösung erlaubt ein einfache Exportieren der Ergebnisse als png-Datei. 
+- Die Verwendung von Plotly als Visualisierungs-Lösung erlaubt ein einfache Exportieren der Ergebnisse als PNG-Datei. 
 
-Die Benutzeroberfläche hat viele Implementierungen und ist sehr intuitiv für den Nutzer, wodurch auf eine detaillierte Erklärung verzichtet wird.
+Die Benutzeroberfläche enthält zahlreiche Implementierungen und ist intuitiv gestaltet, sodass auf eine detaillierte Erklärung verzichtet wird.
+
 ## Optimierung des Messerschmitt–Bölkow–Blohm Balkens (MBB)
-
-
 
 ### 2D SIMP Optimierung
 
@@ -75,7 +73,9 @@ Mit den Einstellungen ```Zielvolumen = 35%, Aggressivität = 0.3```  ergibt der 
 
 ### 3D SIMP Optimierung
 
-Bei der Optimierung von 3D Objekten ist auf eine korrekte Lagerung zu achten. Bei mangelhafter Befesetigung funktioniert eine Optimierung mit der SIMP Methode nicht. Falls dies jedoch der Fall sein sollte, wird man von einer Fehlermeldung darauf aufmerksam gemacht. Mit den Einstellungen ```Zielvolumen = 35%, Iterationen = 30, Filter = 1.5, Cleanup = mittel``` ergibt sich der nachfolgend optimierte Körper:
+Bei der Optimierung von 3D-Objekten ist auf eine korrekte Lagerung zu achten. Das Prinzip des zweidimensionalen Balkens kann dabei auf den Körper übertragen werden. Die Unterkante einer Seite wird in XYZ-Richtung gesperrt, während die gegenüberliegende Unterkante nur in X-Richtung beweglich ist.
+
+Bei mangelhafter Befestigung funktioniert eine Optimierung mit der SIMP-Methode nicht. Sollte dies dennoch der Fall sein, wird man durch eine Fehlermeldung darauf aufmerksam gemacht. Mit den Einstellungen ```Zielvolumen = 35%, Iterationen = 30, Filter = 1.5, Cleanup = mittel``` ergibt sich der nachfolgend optimierte Körper:
 
 <div align="center">
     <img src="resources/ESO_2D.png" width="70%">
@@ -83,20 +83,25 @@ Bei der Optimierung von 3D Objekten ist auf eine korrekte Lagerung zu achten. Be
 
 ### 3D ESO Optimierung
 
-Die Eso Optimierung liefert für dreidimensionale Körper keine realistisch umsetzbaren Strukturen. Beispielsweise liefern die Optimierungsparameter ```Zielvolumen = 35%, Aggressivität = 0.3```  die folgende Struktur:
+Die ESO-Optimierung liefert für dreidimensionale Körper keine realistisch umsetzbaren Strukturen. Beispielsweise liefern die Optimierungsparameter ```Zielvolumen = 35%, Aggressivität = 0.3```  die folgende Struktur:
 
 <div align="center">
     <img src="resources/ESO_2D.png" width="70%">
 </div>
 
 ## Erweiterungen
+Zu den Minimalanforderungen wurden zusätzliche Erweiterungen implementiert:
 
-...
-
-
-
-
-
+-	Erweiterung auf 3D-Strukturen: Die Benutzeroberfläche passt sich automatisch an die gewählte Dimension an.
+-	Implementierung einer weiteren Topologieoptimierung.
+-	Durchdachtes User Interface: 
+    -	Schnellere Positionierung der Lager durch integrierte Streamlit-Widgets (in 2D und 3D).
+    -	Ausgrauen bzw. Deaktivieren von Buttons abhängig von bestimmten Bedingungen.
+    -	Kraftangriff durch Slider-Funktionen bestimmen (unterschiedlich in 2D und 3D).
+    -	Verschiedene Warnungen verhindern unbeabsichtigte Benutzereingaben (fehlender Input, unzureichende Lagerung, zusätzliche Bestätigung beim Löschen oder Schließen).
+    -   Optisch ansprechendes Design (Hintergrundbild auf Startseite, selbstentwickeltes Logo in Sidebar) - Rechte für Bild und Schriftarten sind vorhanden.
+-	Sinnvolles Speichermanagement: Hybrides System aus einer JSON Datei und dem Numpy Binär-Format NPZ.
+-	Ausführliche Struktur-Analyse: Nach der Optimierung werden neben der optimierten Struktur inklusive Lager und Kräften auch die Verformung, Feder-Energien und Feder-Kräft anschaulich dargestellt.
 
 
 # Methodik und Fokus der Implementierung
