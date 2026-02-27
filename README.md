@@ -1,45 +1,109 @@
 # SD_Abschlussprojekt_LG_JS
-![](resources/logo_1.png)
-## Projektübersicht
+### Joachim Spitaler und Leonie Graf
 
-...
+Im Rahmen des Abschlussprojekts im dritten Semester des Studiengangs Mechatronik im Fach Softwaredesign wurde eine Applikation zur Modellierung, Analyse und Optimierung eines zwei- und dreidimensionalen Körpers entwickelt. Ziel ist es, die Materialverteilung des Bauteils zu optimieren, aufgrun von Randbedingungen und den darauf wirkenden Kräften.
 
-## Minimalanforderung
 
-Die definierten Minimalanforderungen wurden zur Gänze erfüllt und befinden sich nachfolgend aufgelistet:
+# Minimalanforderungen
 
-- Programmiert mit Python und User Interface umgesetzt mit streamlit.
-- Die Geometrie eines beliebigen 2D Balkens und 3D Körpers wird durch das Eingabefeld definiert. Alle nachfolgenden Funktionen werden automatisch an die gewählte Dimension angepasst. 
+Die Streamlit Seite kann durch das Ausführen von ```streamlit run .\Startseite.py``` im Terminal geladen werden. Die definierten Minimalanforderungen wurden zur Gänze erfüllt und befinden sich nachfolgend aufgelistet.
+
+- Programmierung in Python, Benutzeroberfläche umgesetzt mit Streamlit.
+- Die Geometrie eines beliebigen 2D-Balkens oder 3D-Körpers wird über ein Eingabefeld definiert. Alle nachfolgenden Funktionen werden automatisch an die gewählte Dimension angepasst.
 - Randbedingungen und Kräfte können an jedem Massepunkt der Ausgangsstruktur platziert werden.
-- Die Struktur wird bereits beim Definieren der Maße, beim Wählen der Lager und beim Ansetzen der Kräfte dargestellt. Bei der Optimierung erscheint ein Plot nach jeder Iteration und die resultierende Verschiebung wird anschließend dargestellt. 
-- Zu jedem Zeitpunkt kann die Struktur in einem Hybrid-System aus einer JSON-Datei und dem Numpy Binär-Format NPZ gespeichert werden. Durch das Speichern der Randbedingungen und des Optimierungszustandes ist ein späteres Laden und Anpassen der Konfiguration problemlos möglich. 
+- Die Struktur wird bereits bei der Definition der Abmessungen, bei der Wahl der Lager sowie beim Ansetzen der Kräfte visualisiert. Während der Optimierung erscheint nach jeder Iteration ein Plot; anschließend wird die resultierende Verschiebung dargestellt. 
+- Die Struktur kann jederzeit gespeichert werden. Durch das Speichern der Randbedingungen und des Optimierungszustands ist ein späteres Laden und Anpassen der Konfiguration problemlos möglich. 
 - Die Struktur besteht aus einem Knoten-Federn System, wodurch das FEM Prinzip angewendet ist. 
 - Verschiedene Überprüfungen und Fehlermeldungen während der Optimierung vermeiden statisch instabile Systeme. 
-- Die Verwendung von Plotly als Visualisierungs-Lösung erlaubt ein einfache Exportieren der Ergebnisse als png-Datei. 
+- Die Verwendung von Plotly als Visualisierungs-Lösung erlaubt ein einfache Exportieren der Ergebnisse als PNG-Datei. 
 
-## Anwendung anhand des Messerschmitt–Bölkow–Blohm (MBB)
-Um die Nutzung zu verstehen, wird die Anwendung anhand des Messerschmitt-Bölkow-Blohm Balken durchgeführt. 
+Die Benutzeroberfläche enthält zahlreiche Implementierungen und ist intuitiv gestaltet, sodass auf eine detaillierte Erklärung verzichtet wird.
 
-1) Neue Struktur erstellen. 
-![](resources/1_Startseite.png)
+# Optimierung des Messerschmitt–Bölkow–Blohm Balkens (MBB)
 
-2) Die gewünschten Maße der Geometrie eingeben und bestätigen. 
-![](resources/2_Geometrie.png)
+### 2D SIMP Optimierung
 
-3) Lager und Kräfte ansetzen.
-![](resources/3_Kraft_bestimmen.png) 
+Mit den Einstellungen ```Zielvolumen = 35%, Iterationen = 30, Filter = 1.5, Cleanup = mittel```  ergibt sich folgende Optimierung:
+<table width="100%" style="border-collapse: collapse;">
 
-4) Einstellungen am Optimierer treffen. 
-![](resources/4_Eso_Optimierung_Einstellungen.png) 
+<tr>
+<td width="50%" valign="top" align="center"
+    style="border-right: 1px solid #444; border-bottom: 1px solid #444;">
 
-## Erweiterungen
+<h4>Optimierte Struktur</h4>
+<img src="resources/SIMP_2D.png" width="90%">
 
-...
+</td>
+
+<td width="50%" valign="top" align="center"
+    style="border-bottom: 1px solid #444;">
+
+<h4>Verformung</h4>
+<img src="resources/SIMP_2D_verformung.png" width="90%">
+
+</td>
+</tr>
+
+<tr>
+<td width="50%" valign="top" align="center"
+    style="border-right: 1px solid #444;">
+
+<h4>Normalkraft-Analyse</h4>
+<img src="resources/SIMP_2D_kraefte.png" width="90%">
+
+</td>
+
+<td width="50%" valign="top" align="center">
+
+<h4>Federenergien-Analyse</h4>
+<img src="resources/SIMP_2D_energies.png" width="90%">
+
+</td>
+</tr>
+
+</table>
+
+### 2D ESO Optimierung
+Mit den Einstellungen ```Zielvolumen = 35%, Aggressivität = 0.3```  ergibt der nachfolgend optimierte Balken:
+<div align="center">
+    <img src="resources/ESO_2D.png" width="70%">
+</div>
+
+# Optimierung von 3D Körpern
+
+### 3D SIMP Optimierung
+
+Bei der Optimierung von 3D-Objekten ist auf eine korrekte Lagerung zu achten. Das Prinzip des zweidimensionalen Balkens kann dabei auf den Körper übertragen werden. Die Unterkante einer Seite wird in XYZ-Richtung gesperrt, während die gegenüberliegende Unterkante nur in X-Richtung beweglich ist. Bei mangelhafter Befestigung funktioniert eine Optimierung mit der SIMP-Methode nicht. Sollte dies dennoch der Fall sein, wird man durch eine Fehlermeldung darauf aufmerksam gemacht. 
+
+Mit den Einstellungen ```Zielvolumen = 35%, Iterationen = 30, Filter = 1.5, Cleanup = mittel``` ergibt sich der optimierte Körper, der nachfolgend anhand seiner Normalkraft-Analyse dargestellt wird.
+
+<div align="center">
+    <img src="resources/SIMP_3D.jpeg" width="70%">
+</div>
+
+### 3D ESO Optimierung
+
+Die ESO-Optimierung liefert für dreidimensionale Körper keine realistisch umsetzbaren Strukturen. Beispielsweise liefern die Optimierungsparameter ```Zielvolumen = 35%, Aggressivität = 0.3```  die folgende Struktur:
+
+<div align="center">
+    <img src="resources/ESO_2D.png" width="70%">
+</div>
 
 
+  
+# Erweiterungen
+Zu den Minimalanforderungen wurden zusätzliche Erweiterungen implementiert:
 
-
-
+-	Erweiterung auf 3D-Strukturen: Die Benutzeroberfläche passt sich automatisch an die gewählte Dimension an.
+-	Implementierung einer weiteren Topologieoptimierung.
+-	Durchdachtes User Interface: 
+    -	Schnellere Positionierung der Lager durch integrierte Streamlit-Widgets (in 2D und 3D).
+    -	Ausgrauen bzw. Deaktivieren von Buttons abhängig von bestimmten Bedingungen.
+    -	Kraftangriff durch Slider-Funktionen bestimmen (unterschiedlich in 2D und 3D).
+    -	Verschiedene Warnungen verhindern unbeabsichtigte Benutzereingaben (fehlender Input, unzureichende Lagerung, zusätzliche Bestätigung beim Löschen oder Schließen).
+    -   Optisch ansprechendes Design (Hintergrundbild auf Startseite, selbstentwickeltes Logo in Sidebar) - Rechte für Bild und Schriftarten sind vorhanden.
+-	Sinnvolles Speichermanagement: Hybrides System aus einer JSON Datei und dem Numpy Binär-Format NPZ.
+-	Ausführliche Struktur-Analyse: Nach der Optimierung werden neben der optimierten Struktur inklusive Lager und Kräften auch die Verformung, Feder-Energien und Feder-Kräft anschaulich dargestellt.
 
 
 # Methodik und Fokus der Implementierung
@@ -50,7 +114,7 @@ Im Rahmen des Projekts wurde besonderer Wert auf eine nachvollziehbare und klare
 
 Obwohl der Fokus anfangs auf der vorgeschlagenen **ESO-Optimierung (Evolutionary Structural Optimization)** lag, traten hierbei signifikante Herausforderungen auf. Da das Entfernen von Knoten oft die Integrität des mechanischen Systems gefährdet, haben wir verschiedene Prüfroutinen implementiert, die das System bereits vor dem Löschen auf seine zukünftige Stabilität untersuchen. Da eine lückenlose Prüfung insbesondere bei komplexen Strukturen jedoch zu extrem langen Rechenzeiten führt, lag die größte Schwierigkeit darin, einen effizienten Kompromiss zwischen Rechengeschwindigkeit und Vorhersagegenauigkeit zu finden.
 
-Das Endergebnis der ESO-Implementierung ist somit primär auf eine vertretbare Rechenzeit ausgelegt. Da der Fokus im weiteren Projektverlauf auf das SIMP-Verfahren verlagert wurde, ist dieser Teil nicht voll ausgereift; insbesondere 3D-Strukturen können aufgrund der aktuell noch zu primitiven Prüflogik nur bedingt optimiert werden.
+Das Endergebnis der ESO-Implementierung ist somit primär auf eine vertretbare Rechenzeit ausgelegt. Da der Fokus im weiteren Projektverlauf auf das SIMP-Verfahren verlagert wurde, ist dieser Teil nicht voll ausgereift.
 
 ## Implementierung des SIMP-Verfahrens
 
