@@ -65,7 +65,7 @@ def plot_optimization_results(structure, plotter):
 
     with tab3:
         st.write("#### Visualisierung der Feder-Kräfte")
-        st.write("structure.dim:", structure.dim)
+
         #Federkräfte berechnen
         forces = structure.calc_element_forces(u_final)
 
