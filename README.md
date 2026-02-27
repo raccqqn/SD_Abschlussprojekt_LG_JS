@@ -3,10 +3,18 @@
 
 Im Rahmen des Abschlussprojekts im dritten Semester des Studiengangs Mechatronik im Fach Softwaredesign wurde eine Applikation zur Modellierung, Analyse und Optimierung eines zwei- und dreidimensionalen Körpers entwickelt. Ziel ist es, die Materialverteilung des Bauteils zu optimieren, aufgrund von Randbedingungen und den darauf einwirkenden Kräften.
 
+# Installation und Ausführung
+
+Um das Projekt ausführen zu können, muss das Repository geklont, die virtuelle Umgebung erstellt und die Requirements installiert werden. Die Anwendung kann anschließend mit dem Befehl ```streamlit run .\Startseite.py``` lokal gestartet werden. 
+
+
+Eine weitere Möglichkeit ist das Aufrufen online über die Streamlit Web-App, die sich unter [diesem Link](https://sdabschlussprojektlgjs-7j6rxwkhfreunotlcjq7hf.streamlit.app/) befindet. 
+
+
 
 # Minimalanforderungen
 
-Die Streamlit Seite kann durch das Ausführen von ```streamlit run .\Startseite.py``` im Terminal geladen werden oder durch Klick auf den [Link](https://sdabschlussprojektlgjs-7j6rxwkhfreunotlcjq7hf.streamlit.app/).  Die definierten Minimalanforderungen wurden zur Gänze erfüllt und befinden sich nachfolgend aufgelistet.
+ Die definierten Minimalanforderungen wurden zur Gänze erfüllt und sind nachfolgend aufgelistet.
 
 - Programmierung in Python, Benutzeroberfläche umgesetzt mit Streamlit.
 - Die Geometrie eines beliebigen 2D-Balkens oder 3D-Körpers wird über ein Eingabefeld definiert. Alle nachfolgenden Funktionen werden automatisch an die gewählte Dimension angepasst.
@@ -64,9 +72,10 @@ Mit den Einstellungen ```Zielvolumen = 35%, Iterationen = 30, Filter = 1.5, Clea
 </table>
 
 ### 2D ESO Optimierung
-Mit den Einstellungen ```Zielvolumen = 35%, Aggressivität = 0.3```  ergibt der nachfolgend optimierte Balken:
+Die Einstellungen ```Zielvolumen = 35%, Aggressivität = 0.3```  führen zum folgenden optimierten Balken:
 <div align="center">
     <img src="resources/ESO_2D.png" width="70%">
+    <br>
 </div>
 
 # Optimierung von 3D Körpern
@@ -87,10 +96,11 @@ Mit den Einstellungen ```Zielvolumen = 30%, Iterationen = 30, Filter = 1.5, Clea
 
 Eine unzureichende Lagerung wird beim ESO Optimierer nicht mit einer Warnmeldung abgefangen, denn dieser Optimierer kann immer eine Lösung berechnen. Jedoch ist das Ergebniss bei einer schlechten Lagerung nicht aussagekräftig. 
 
-Bei korrekten Randbedingungen werden hingegen sehr gute Ergebnisse geliefert. Mit Optimierungswerten von ```Zielvolumen = 65%, Aggressivität = 0.4```, ergibt sich die folgende Struktur, dargestellt mit der Federnergien-Analyse. 
+Bei korrekten Randbedingungen werden sehr gute Ergebnisse geliefert. Mit Optimierungswerten von ```Zielvolumen = 65%, Aggressivität = 0.4```, ergibt sich die folgende Struktur, dargestellt mit der Federnergien-Analyse. 
 
 <div align="center">
-    <img src="resources/ESO_3D.png" width="70%">
+    <img src="resources/ESO_3D.png" width="70%">  
+    <br>
 </div>
 
 
@@ -112,7 +122,11 @@ Zu den Minimalanforderungen wurden zusätzliche Erweiterungen implementiert:
 
 # Methodik und Fokus der Implementierung
 
-Im Rahmen des Projekts wurde besonderer Wert auf eine nachvollziehbare und klare Strukturierung gelegt. Dies erreichten wir durch eine logische Verknüpfung der Klassen und eine konsequente Trennung der Funktionalitäten.
+Im Rahmen des Projekts wurde besonderer Wert auf eine nachvollziehbare und klare Strukturierung gelegt. Dies erreichten wir durch eine logische Verknüpfung der Klassen und eine konsequente Trennung der Funktionalitäten. Das nachstehende UML Diagramm zeigt die Beziehungen zwischen den einzelnen Klassen. 
+
+<div align="center">
+    <img src="resources/final_uml.png" width="70%">
+</div>
 
 ## Herausforderungen der ESO-Optimierung
 
