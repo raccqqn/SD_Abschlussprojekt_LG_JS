@@ -25,7 +25,7 @@ Eine weitere Möglichkeit ist das Aufrufen online über die Streamlit Web-App, d
 - Verschiedene Überprüfungen und Fehlermeldungen während der Optimierung vermeiden statisch instabile Systeme. 
 - Die Verwendung von Plotly als Visualisierungs-Lösung erlaubt ein einfache Exportieren der Ergebnisse als PNG-Datei. 
 
-Die Benutzeroberfläche enthält zahlreiche Implementierungen und ist intuitiv gestaltet, sodass auf eine detaillierte Erklärung verzichtet wird.
+Die Benutzeroberfläche enthält zahlreiche Implementierungen und ist intuitiv gestaltet, sodass auf eine detaillierte Erklärung verzichtet werden kann.
 
 # Optimierung des Messerschmitt–Bölkow–Blohm Balkens (MBB)
 
@@ -94,9 +94,7 @@ Mit den Einstellungen ```Zielvolumen = 30%, Iterationen = 30, Filter = 1.5, Clea
 
 ### 3D ESO Optimierung
 
-Eine unzureichende Lagerung wird beim ESO Optimierer nicht mit einer Warnmeldung abgefangen, denn dieser Optimierer kann immer eine Lösung berechnen. Jedoch ist das Ergebniss bei einer schlechten Lagerung nicht aussagekräftig. 
-
-Bei korrekten Randbedingungen werden sehr gute Ergebnisse geliefert. Mit Optimierungswerten von ```Zielvolumen = 65%, Aggressivität = 0.4```, ergibt sich die folgende Struktur, dargestellt mit der Federnergien-Analyse. 
+Eine unzureichende Lagerung wird beim ESO Optimierer nicht mit einer Warnmeldung abgefangen. Bei korrekten Randbedingungen werden jedoch sehr gute Ergebnisse geliefert. Mit Optimierungswerten von ```Zielvolumen = 65%, Aggressivität = 0.4```, ergibt sich die folgende Struktur, dargestellt anhand der Federnergien-Analyse. 
 
 <div align="center">
     <img src="resources/ESO_3D.png" width="70%">  
