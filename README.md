@@ -1,17 +1,17 @@
 # SD_Abschlussprojekt_LG_JS
 ### Joachim Spitaler und Leonie Graf
 
-Im Rahmen des Abschlussprojekts im dritten Semester des Studiengangs Mechatronik im Fach Softwaredesign wurde eine Applikation zur Modellierung, Analyse und Optimierung eines zwei- und dreidimensionalen Körpers entwickelt. Ziel ist es, die Materialverteilung des Bauteils zu optimieren, aufgrun von Randbedingungen und den darauf wirkenden Kräften.
+Im Rahmen des Abschlussprojekts im dritten Semester des Studiengangs Mechatronik im Fach Softwaredesign wurde eine Applikation zur Modellierung, Analyse und Optimierung eines zwei- und dreidimensionalen Körpers entwickelt. Ziel ist es, die Materialverteilung des Bauteils zu optimieren, aufgrund von Randbedingungen und den darauf einwirkenden Kräften.
 
 
 # Minimalanforderungen
 
-Die Streamlit Seite kann durch das Ausführen von ```streamlit run .\Startseite.py``` im Terminal geladen werden. Die definierten Minimalanforderungen wurden zur Gänze erfüllt und befinden sich nachfolgend aufgelistet.
+Die Streamlit Seite kann durch das Ausführen von ```streamlit run .\Startseite.py``` im Terminal geladen werden oder durch Klick auf den [Link](https://sdabschlussprojektlgjs-7j6rxwkhfreunotlcjq7hf.streamlit.app/).  Die definierten Minimalanforderungen wurden zur Gänze erfüllt und befinden sich nachfolgend aufgelistet.
 
 - Programmierung in Python, Benutzeroberfläche umgesetzt mit Streamlit.
 - Die Geometrie eines beliebigen 2D-Balkens oder 3D-Körpers wird über ein Eingabefeld definiert. Alle nachfolgenden Funktionen werden automatisch an die gewählte Dimension angepasst.
 - Randbedingungen und Kräfte können an jedem Massepunkt der Ausgangsstruktur platziert werden.
-- Die Struktur wird bereits bei der Definition der Abmessungen, bei der Wahl der Lager sowie beim Ansetzen der Kräfte visualisiert. Während der Optimierung erscheint nach jeder Iteration ein Plot; anschließend wird die resultierende Verschiebung dargestellt. 
+- Die Struktur wird bereits bei der Definition der Abmessungen, bei der Wahl der Lager sowie beim Ansetzen der Kräfte visualisiert. Während der Optimierung erscheint nach jeder Iteration ein Plot und anschließend wird die resultierende Verschiebung dargestellt. 
 - Die Struktur kann jederzeit gespeichert werden. Durch das Speichern der Randbedingungen und des Optimierungszustands ist ein späteres Laden und Anpassen der Konfiguration problemlos möglich. 
 - Die Struktur besteht aus einem Knoten-Federn System, wodurch das FEM Prinzip angewendet ist. 
 - Verschiedene Überprüfungen und Fehlermeldungen während der Optimierung vermeiden statisch instabile Systeme. 
@@ -71,11 +71,13 @@ Mit den Einstellungen ```Zielvolumen = 35%, Aggressivität = 0.3```  ergibt der 
 
 # Optimierung von 3D Körpern
 
+Bei der Optimierung von 3D-Objekten ist auf eine korrekte Lagerung zu achten. Das Prinzip des zweidimensionalen Balkens kann dabei auf den Körper übertragen werden. Die Unterkante einer Seite wird in XYZ-Richtung gesperrt, während die gegenüberliegende Unterkante nur in X-Richtung beweglich ist.
+
 ### 3D SIMP Optimierung
 
-Bei der Optimierung von 3D-Objekten ist auf eine korrekte Lagerung zu achten. Das Prinzip des zweidimensionalen Balkens kann dabei auf den Körper übertragen werden. Die Unterkante einer Seite wird in XYZ-Richtung gesperrt, während die gegenüberliegende Unterkante nur in X-Richtung beweglich ist. Bei mangelhafter Befestigung funktioniert eine Optimierung mit der SIMP-Methode nicht. Sollte dies dennoch der Fall sein, wird man durch eine Fehlermeldung darauf aufmerksam gemacht. 
+Bei mangelhafter Befestigung funktioniert eine Optimierung mit der SIMP-Methode nicht. Sollte dies dennoch der Fall sein, wird man durch eine Fehlermeldung darauf aufmerksam gemacht. 
 
-Mit den Einstellungen ```Zielvolumen = 35%, Iterationen = 30, Filter = 1.5, Cleanup = mittel``` ergibt sich der optimierte Körper, der nachfolgend anhand seiner Normalkraft-Analyse dargestellt wird.
+Mit den Einstellungen ```Zielvolumen = 30%, Iterationen = 30, Filter = 1.5, Cleanup = hoch``` ergibt sich der optimierte Körper, der nachfolgend anhand seiner Normalkraft-Analyse dargestellt wird.
 
 <div align="center">
     <img src="resources/SIMP_3D.jpeg" width="70%">
@@ -83,10 +85,12 @@ Mit den Einstellungen ```Zielvolumen = 35%, Iterationen = 30, Filter = 1.5, Clea
 
 ### 3D ESO Optimierung
 
-Die ESO-Optimierung liefert für dreidimensionale Körper keine realistisch umsetzbaren Strukturen. Beispielsweise liefern die Optimierungsparameter ```Zielvolumen = 35%, Aggressivität = 0.3```  die folgende Struktur:
+Eine unzureichende Lagerung wird beim ESO Optimierer nicht mit einer Warnmeldung abgefangen, denn dieser Optimierer kann immer eine Lösung berechnen. Jedoch ist das Ergebniss bei einer schlechten Lagerung nicht aussagekräftig. 
+
+Bei korrekten Randbedingungen werden hingegen sehr gute Ergebnisse geliefert. Mit Optimierungswerten von ```Zielvolumen = 65%, Aggressivität = 0.4```, ergibt sich die folgende Struktur, dargestellt mit der Federnergien-Analyse. 
 
 <div align="center">
-    <img src="resources/ESO_2D.png" width="70%">
+    <img src="resources/ESO_3D.png" width="70%">
 </div>
 
 
@@ -103,7 +107,7 @@ Zu den Minimalanforderungen wurden zusätzliche Erweiterungen implementiert:
     -	Verschiedene Warnungen verhindern unbeabsichtigte Benutzereingaben (fehlender Input, unzureichende Lagerung, zusätzliche Bestätigung beim Löschen oder Schließen).
     -   Optisch ansprechendes Design (Hintergrundbild auf Startseite, selbstentwickeltes Logo in Sidebar) - Rechte für Bild und Schriftarten sind vorhanden.
 -	Sinnvolles Speichermanagement: Hybrides System aus einer JSON Datei und dem Numpy Binär-Format NPZ.
--	Ausführliche Struktur-Analyse: Nach der Optimierung werden neben der optimierten Struktur inklusive Lager und Kräften auch die Verformung, Feder-Energien und Feder-Kräft anschaulich dargestellt.
+-	Ausführliche Struktur-Analyse: Nach der Optimierung werden neben der optimierten Struktur inklusive Lager und Kräften auch die Verformung, Feder-Energien und Feder-Kräfte anschaulich dargestellt.
 
 
 # Methodik und Fokus der Implementierung
