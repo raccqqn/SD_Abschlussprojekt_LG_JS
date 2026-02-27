@@ -24,18 +24,12 @@ def init_default_session_states():          #session_states auf default Werte se
     for key, value in Default.items():
         st.session_state[key] = value
 
-def init_current_session_states():
-    pass 
-
 def init_remove_input_force_support():      #Kraft und Lager entfernen
     st.session_state["forces"].clear()
     st.session_state["supports"].clear()
     st.session_state["ui_input_changed"] = False
 
-def init_empty_structure_state():           #Structur leeren - wird nicht gebraucht bis jetzt
-    st.session_state["structure"] = None
-
-def init_max_values():                      #Maximum Werte für Buttons ( Maximale Koordinate) in ui_parts auf "nicht ausgewählt" setzen
+def init_max_values():                      #Maximum Werte für Buttons in ui_fixings auf "nicht ausgewählt" setzen
     if "x_max" not in st.session_state:
         st.session_state["x_max"] = False
     if "y_max" not in st.session_state:
@@ -49,8 +43,30 @@ def init_all_y_values_values():            #Maximum Werte für Auswahl aller Koo
     if "all_y_values" not in st.session_state:
         st.session_state["all_y_values"] = False
 
-def show_geometry_states():
+def show_geometry_states():                 #Werte der Geometrie anzeigen 
     st.markdown(f":blue-badge[{st.session_state.length}]" 
                 f":blue-badge[{st.session_state.width}]" 
                 f":blue-badge[{st.session_state.depth}]" 
                 f":blue-badge[{st.session_state.EA}]")
+
+def sync_session_state_with_struc(structure):
+
+    #UI-Attribute aktualisieren
+    st.session_state["length"] = structure.length
+    st.session_state["width"]  = structure.width
+    st.session_state["depth"]  = structure.depth
+    st.session_state["EA"]     = structure.EA
+    st.session_state["dim"]    = structure.dim
+
+    #UI Input-Felder aktualisieren
+    st.session_state["ui_length"] = structure.length
+    st.session_state["ui_width"]  = structure.width
+    st.session_state["ui_depth"]  = structure.depth
+    st.session_state["ui_EA"]     = structure.EA
+
+    #Lagerungen und Kräfte abrufen, speichern
+    st.session_state["supports"] = structure.get_supports()
+    st.session_state["forces"]   = structure.get_forces()
+
+    #Objekt selbst speichern
+    st.session_state["structure"] = structure

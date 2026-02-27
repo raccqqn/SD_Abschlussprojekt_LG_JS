@@ -1,6 +1,6 @@
 import streamlit as st
-from UI.state import init_session_states, init_default_session_states
-from UI.ui_parts import sync_session_state_with_struc, set_bg_hack
+from UI.state import init_session_states, init_default_session_states, sync_session_state_with_struc
+from UI.ui_parts import set_bg_hack
 from src.structureManager import StructureManager
 from datetime import datetime
 

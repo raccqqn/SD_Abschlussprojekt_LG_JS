@@ -1,6 +1,7 @@
 import streamlit as st
 from UI.state import init_session_states, init_remove_input_force_support, show_geometry_states
-from UI.ui_parts import ui_storage_sidebar, ui_geometry, ui_pages_sidebar
+from UI.ui_parts import ui_storage_sidebar, ui_pages_sidebar
+from UI.ui_geometry import ui_geometry
 from UI.geometry import build_structure_from_session_states
 from UI.plots import Plotter
 
