@@ -4,7 +4,7 @@
 Im Rahmen des Abschlussprojekts im dritten Semester des Studiengangs Mechatronik im Fach Softwaredesign wurde eine Applikation zur Modellierung, Analyse und Optimierung eines zwei- und dreidimensionalen Körpers entwickelt. Ziel ist es, die Materialverteilung des Bauteils zu optimieren, aufgrun von Randbedingungen und den darauf wirkenden Kräften.
 
 
-## Minimalanforderung
+# Minimalanforderungen
 
 Die Streamlit Seite kann durch das Ausführen von ```streamlit run .\Startseite.py``` im Terminal geladen werden. Die definierten Minimalanforderungen wurden zur Gänze erfüllt und befinden sich nachfolgend aufgelistet.
 
@@ -19,7 +19,7 @@ Die Streamlit Seite kann durch das Ausführen von ```streamlit run .\Startseite.
 
 Die Benutzeroberfläche enthält zahlreiche Implementierungen und ist intuitiv gestaltet, sodass auf eine detaillierte Erklärung verzichtet wird.
 
-## Optimierung des Messerschmitt–Bölkow–Blohm Balkens (MBB)
+# Optimierung des Messerschmitt–Bölkow–Blohm Balkens (MBB)
 
 ### 2D SIMP Optimierung
 
@@ -69,7 +69,7 @@ Mit den Einstellungen ```Zielvolumen = 35%, Aggressivität = 0.3```  ergibt der 
     <img src="resources/ESO_2D.png" width="70%">
 </div>
 
-## Optimierung von 3D Körpern
+# Optimierung von 3D Körpern
 
 ### 3D SIMP Optimierung
 
@@ -89,7 +89,9 @@ Die ESO-Optimierung liefert für dreidimensionale Körper keine realistisch umse
     <img src="resources/ESO_2D.png" width="70%">
 </div>
 
-## Erweiterungen
+
+  
+# Erweiterungen
 Zu den Minimalanforderungen wurden zusätzliche Erweiterungen implementiert:
 
 -	Erweiterung auf 3D-Strukturen: Die Benutzeroberfläche passt sich automatisch an die gewählte Dimension an.
