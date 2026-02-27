@@ -104,9 +104,9 @@ if st.session_state["lock_optimization"] == True:
         opt = Opt.optimize(final_volume, max_iter, filter_radius=filter_radius)
 
         #Yield gibt dic mit aktuellem Status zurück
-        for yield_dict in opt:
-            it = yield_dict.get("iter")
-            x_vals = yield_dict.get("x")
+        for state in opt:
+            it = state.get("iter")
+            x_vals = state.get("x")
 
             #Prüfung der x_vals, ob sie NaNs sind, da ansonsten ein ValueError kommt
             if x_vals is None or np.isnan(x_vals).any():
@@ -114,8 +114,8 @@ if st.session_state["lock_optimization"] == True:
                 st.session_state["lock_optimization"] = False
                 break
              
-            compliance = yield_dict.get("compliance")
-            vol_frac = yield_dict.get("frac")
+            compliance = state.get("compliance")
+            vol_frac = state.get("frac")
 
             fig = plotter.simp_figure(struc, x_vals, it, compliance, vol_frac)
 
