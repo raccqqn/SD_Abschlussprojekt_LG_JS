@@ -30,10 +30,10 @@ st.session_state["structure"] = structure
 placeholder = st.empty()
 
 if st.session_state["depth"] > 1:                      #Je nachdem ob 2d oder 3d werden andere Plot Verfahren genutzt
-    fig = plotter.body_undeformed(structure, True, display=False)
+    fig = plotter.body_undeformed(structure, show_nodes=True, node_size=3, linewidth=1, display=False, )
 
 else:
-    fig = plotter.beam_undeformed(structure, True, 3, 1, display=False)
+    fig = plotter.beam_undeformed(structure, show_nodes=True, node_size=3, linewidth=1, display=False, line_color="#262730")
 
 placeholder.plotly_chart(fig, width="stretch")
 

@@ -34,9 +34,9 @@ def plot_optimization_results(structure, plotter):
     with tab1:
         st.write("#### Lager und Kräfte am optimierten Bauteil")
         if structure.dim == 3:
-            plotter.body_undeformed(structure, linewidth=4)
+            plotter.body_undeformed(structure, linewidth = 3, line_color="#367aab")
         else:
-            plotter.beam_undeformed(structure)
+            plotter.beam_undeformed(structure, linewidth = 3, line_color="#3f91cc") ##1f77b4
         
         st.caption("Zum Herunterladen auf das Kamera-Emoji im Plot klicken.", text_alignment="center")
 
@@ -65,12 +65,12 @@ def plot_optimization_results(structure, plotter):
 
     with tab3:
         st.write("#### Visualisierung der Feder-Kräfte")
-        
+        st.write("structure.dim:", structure.dim)
         #Federkräfte berechnen
         forces = structure.calc_element_forces(u_final)
 
-        fig_forces = plotter.plot_colored_structure(structure, u_final, forces)
-        st.plotly_chart(fig_forces, width="stretch", key="spring_forces_plot", config={
+        fig_forces = plotter.plot_colored_structure(structure, u_final, forces)        #key="spring_forces_plot",
+        st.plotly_chart(fig_forces, width="stretch",  config={
                             "toImageButtonOptions" : {
                                 "format": "png",
                                 "filename" : "normalkraft_verteilung",

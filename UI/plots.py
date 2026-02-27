@@ -57,7 +57,7 @@ class Plotter:
             edge_to_nodes.append((i_id, j_id))
         return x_lines, y_lines, z_lines, edge_to_nodes
 
-    def beam_undeformed(self, beam, show_nodes=True, node_size=4, linewidth=1, 
+    def beam_undeformed(self, beam, show_nodes=True, node_size=4, linewidth=1, line_color="#444444",
                         display=True, placeholder=None):
         
         x_lines, y_lines, _ = self._edges_to_lines_2d(beam)
@@ -66,7 +66,7 @@ class Plotter:
         # Struktur-Linien
         fig.add_trace(go.Scattergl(
             x=x_lines, y=y_lines, mode="lines",
-            line=dict(width=linewidth, color="#444444"),
+            line=dict(width=linewidth, color=line_color),
             hoverinfo="skip",
             showlegend=False
         ))
@@ -129,7 +129,7 @@ class Plotter:
             
         return fig
 
-    def body_undeformed(self, body, show_nodes=True, node_size=3, linewidth=2,
+    def body_undeformed(self, body, show_nodes=True, node_size=3, linewidth=2,  line_color="#444444",
                         display=True, placeholder=None):
         
         x_lines, y_lines, z_lines, _ = self._edges_to_lines_3d(body)
@@ -138,15 +138,15 @@ class Plotter:
         # Struktur-Linien (Gittermodell)
         fig.add_trace(go.Scatter3d(
             x=x_lines, y=y_lines, z=z_lines, mode="lines",
-            line=dict(width=linewidth, color="#444444"),
+            line=dict(width=linewidth, color=line_color),
             hoverinfo="skip", showlegend=False
         ))
 
         if show_nodes:
             # Gruppen-Definition (Name: [Farbe, Größe, Legende_Anzeigen])
             groups = {
-                "Knoten":        {"pos": [], "color": "#1f77b4", "size": node_size,     "show": False},
-                "Kraftangriff":  {"pos": [], "color": "red",     "size": node_size + 2, "show": True},
+                "Knoten":        {"pos": [], "color": "#1f77b4", "size": node_size, "show": False},
+                "Kraftangriff":  {"pos": [], "color": "red",     "size": node_size + 4, "show": True},
                 "Festlager (XYZ)":{"pos": [], "color": "green", "size": node_size + 4, "show": True},
                 "Loslager":{"pos": [], "color": "yellow", "size": node_size + 3, "show": True},
             }
@@ -523,7 +523,7 @@ class Plotter:
                 #Linien-Eigenschaften abhängig von Dimension festlegen
                 line_props = dict(color=([val, val] if is_3d else map_color(val)), width=4)
                 if is_3d: 
-                    line_props.update(colorscale=color_scheme, cmin=cmin, cmax=cmax)
+                   line_props.update(colorscale=color_scheme, cmin=cmin, cmax=cmax)
                 
                 trace_type = go.Scatter3d if is_3d else go.Scatter
                 arg_dict = dict(x=[p1[0], p2[0]], y=[p1[1], p2[1]], mode="lines", line=line_props, 
@@ -535,17 +535,18 @@ class Plotter:
             #Linie zeichnen
             fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=dict(colorscale=color_scheme, cmin=cmin, 
                                     cmax=cmax, showscale=True, colorbar=dict(title="Kraft (N)" if symmetric else "Energie", x=1.05)), showlegend=False))
+            
             #Layout anpassen
             fig.update_layout(template="plotly_dark", margin=dict(l=0, r=0, t=40, b=0), 
                               paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
             
             if is_3d: 
-                fig.update_layout(scene=dict(aspectmode="data", xaxis_visible=False, yaxis_visible=False, zaxis_visible=False))
+                fig.update_layout(scene=dict(aspectmode="data", xaxis_visible=False, yaxis_visible=False, zaxis_visible=False, ))
             else: 
                 fig.update_layout(xaxis=dict(scaleanchor="y", visible=False), yaxis=dict(autorange="reversed", visible=False))
             
             return fig
-    
+        
     #Dimension der Struktur bestimmen
     def eso_figure(self, structure, node_mask, initial_node_ids, iter, n_removed, vol_frac):
         if structure.dim == 3:
